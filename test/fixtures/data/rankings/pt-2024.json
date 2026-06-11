@@ -1,0 +1,28 @@
+[
+  {
+    "slug": "pt-modul-alfa",
+    "name": "Modul Alfa",
+    "sector": 3,
+    "days": 20,
+    "days_avarie": 5,
+    "days_programat": 16,
+    "days_deficienta": 2,
+    "episodes": 3,
+    "longest_days": 14,
+    "est_day_eq": 18.5,
+    "delta_prev": null
+  },
+  {
+    "slug": "pt-modul-beta",
+    "name": "Modul Beta",
+    "sector": 4,
+    "days": 8,
+    "days_avarie": 8,
+    "days_programat": 0,
+    "days_deficienta": 0,
+    "episodes": 2,
+    "longest_days": 8,
+    "est_day_eq": 7.2,
+    "delta_prev": null
+  }
+]

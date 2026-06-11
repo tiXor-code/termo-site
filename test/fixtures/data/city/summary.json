@@ -1,0 +1,28 @@
+[
+  {
+    "year": 2024,
+    "partial": false,
+    "median_pt_days": 14,
+    "mean_pt_days": 14.0,
+    "p90_pt_days": 19,
+    "pts_hit": 2,
+    "share_universe_hit_pct": 100.0,
+    "episodes": 5,
+    "episodes_avarie": 3,
+    "episodes_programat": 2,
+    "monthly_pt_days": [8, 0, 0, 8, 7, 0, 5, 0, 0, 2, 0, 3]
+  },
+  {
+    "year": 2025,
+    "partial": true,
+    "median_pt_days": 3,
+    "mean_pt_days": 3.0,
+    "p90_pt_days": 5,
+    "pts_hit": 1,
+    "share_universe_hit_pct": 50.0,
+    "episodes": 1,
+    "episodes_avarie": 1,
+    "episodes_programat": 0,
+    "monthly_pt_days": [0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  }
+]

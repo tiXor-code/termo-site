@@ -1,0 +1,32 @@
+{
+  "name": "termo-site",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "predev": "node scripts/fetch-data.mjs",
+    "dev": "next dev",
+    "prebuild": "node scripts/fetch-data.mjs",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.3.0",
+    "maplibre-gl": "^5.24.0",
+    "next": "^16.2.9",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "server-only": "^0.0.1",
+    "tailwindcss": "^4.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/geojson": "^7946.0.16",
+    "@types/node": "^25.9.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
+  }
+}

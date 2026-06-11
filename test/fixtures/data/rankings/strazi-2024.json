@@ -1,0 +1,30 @@
+[
+  {
+    "slug": "str-alfa",
+    "name": "Str Alfa",
+    "days": 20,
+    "days_avarie": 5,
+    "days_programat": 16,
+    "days_deficienta": 2,
+    "episodes": 3,
+    "longest_days": 14,
+    "est_day_eq": 18.5,
+    "delta_prev": null,
+    "sectors": [3],
+    "pt_slugs": ["pt-modul-alfa"]
+  },
+  {
+    "slug": "str-beta",
+    "name": "Str Beta",
+    "days": 8,
+    "days_avarie": 8,
+    "days_programat": 0,
+    "days_deficienta": 0,
+    "episodes": 2,
+    "longest_days": 8,
+    "est_day_eq": 7.2,
+    "delta_prev": null,
+    "sectors": [3, 4],
+    "pt_slugs": ["pt-modul-beta"]
+  }
+]

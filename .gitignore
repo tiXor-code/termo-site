@@ -1,0 +1,22 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+
+# data (fetched at build time, never committed)
+.data/
+public/data/
+
+# testing
+test-results/
+playwright-report/
+coverage/
+
+# misc
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+.env*.local
+.vercel
