@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, Source_Serif_4 } from 'next/font/google';
 import './globals.css';
+import FeedbackWidget from '@/components/FeedbackWidget';
 import SiteNav from '@/components/SiteNav';
 import SourceFooter from '@/components/SourceFooter';
 import { JsonLd, webSiteJsonLd } from '@/lib/seo';
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SiteNav />
         {children}
         <SourceFooter />
+        <FeedbackWidget />
         <JsonLd data={webSiteJsonLd()} />
       </body>
     </html>
