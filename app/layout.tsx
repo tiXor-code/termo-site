@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import { Inter, Source_Serif_4 } from 'next/font/google';
+import Script from 'next/script';
 import './globals.css';
 import FeedbackWidget from '@/components/FeedbackWidget';
 import SiteNav from '@/components/SiteNav';
 import SourceFooter from '@/components/SourceFooter';
 import { JsonLd, webSiteJsonLd } from '@/lib/seo';
+
+const GA_ID = 'G-2QJEM3G11G';
 
 const serif = Source_Serif_4({
   subsets: ['latin', 'latin-ext'],
@@ -35,6 +38,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SourceFooter />
         <FeedbackWidget />
         <JsonLd data={webSiteJsonLd()} />
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', '${GA_ID}');`}
+        </Script>
       </body>
     </html>
   );
