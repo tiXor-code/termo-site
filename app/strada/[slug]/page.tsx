@@ -65,21 +65,20 @@ function PtHistory({
   street,
   yearsDesc,
   dataThrough,
-  lcy,
 }: {
   pt: PtEntity;
   street: string;
   yearsDesc: number[];
   dataThrough: string;
-  lcy: number;
 }) {
   // Detailed episode log (cause, start, end, duration) for this block's PT.
-  // Inline we show the latest complete year (most relevant to a renter) and
+  // Inline we show the CURRENT year (what a renter cares about right now) and
   // link to the PT page for the full multi-year log - rendering every year for
   // every serving PT would bloat mega-streets (26 PTs) into multi-MB pages.
-  const lcyEpisodes = pt.years[String(lcy)]?.episodes ?? [];
-  const episodeYears = lcyEpisodes.length > 0 ? [{ year: lcy, episodes: lcyEpisodes }] : [];
-  const defaultOpenYear = lcy;
+  const curYear = yearsDesc[0];
+  const curEpisodes = pt.years[String(curYear)]?.episodes ?? [];
+  const episodeYears = curEpisodes.length > 0 ? [{ year: curYear, episodes: curEpisodes }] : [];
+  const defaultOpenYear = curYear;
   return (
     <section className="mt-6">
       <h2 className="font-display text-xl font-bold">
@@ -330,7 +329,6 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
           street={street.name}
           yearsDesc={yearsDesc}
           dataThrough={meta.data_through}
-          lcy={lcy}
         />
         {servingPts.length > 1 && (
           <ServingPtList servingPts={servingPts} lcy={lcy} />
@@ -370,7 +368,6 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
           street={street.name}
           yearsDesc={yearsDesc}
           dataThrough={meta.data_through}
-          lcy={lcy}
         />
       </>
     ),
