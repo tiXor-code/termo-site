@@ -158,6 +158,10 @@ export default function MetodologiePage() {
             Numărul de blocuri deservite de un punct termic este o estimare din anunțuri, nu o
             evidență oficială.
           </li>
+          <li>
+            Site-ul se reconstruiește o dată pe noapte. O avarie rezolvată recent poate apărea încă
+            activă („în curs") până la următoarea actualizare.
+          </li>
         </ul>
       </section>
 

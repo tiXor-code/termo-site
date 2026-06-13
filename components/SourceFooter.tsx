@@ -16,6 +16,10 @@ export default function SourceFooter() {
           </Link>
           .
         </p>
+        <p>
+          Datele se actualizează o dată pe noapte. O avarie rezolvată recent poate apărea încă
+          activă („în curs") până la următoarea actualizare.
+        </p>
         <p className="text-xs">Set de date generat la {fmtDateTimeRo(meta.generated_at)}.</p>
       </div>
     </footer>
