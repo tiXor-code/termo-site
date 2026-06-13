@@ -20,12 +20,12 @@ test('multi-PT street: block finder present, selecting two blocks yields differe
   const visibleNum = page.locator('.verdict:visible .v-num');
   await expect(visibleNum).toHaveCount(1);
 
-  // Pick block A -> its serving PT's verdict number shows.
-  await select.selectOption({ label: FINDER.optionA.optionText });
+  // Pick PT A -> its verdict number shows.
+  await select.selectOption(FINDER.optionA.ptSlug);
   await expect(page.locator('.verdict:visible .v-num')).toHaveText(String(FINDER.optionA.days));
 
-  // Pick block B (different serving PT) -> a DIFFERENT verdict number shows.
-  await select.selectOption({ label: FINDER.optionB.optionText });
+  // Pick PT B (different zone) -> a DIFFERENT verdict number shows.
+  await select.selectOption(FINDER.optionB.ptSlug);
   await expect(page.locator('.verdict:visible .v-num')).toHaveText(String(FINDER.optionB.days));
 
   // Sanity: the two blocks really do differ (fixture guarantees it).
@@ -46,7 +46,7 @@ test('verdict band contrast: grade color never paints label/value/note text', as
 
   // Pick the higher-days block so the verdict carries a non-green grade color.
   const worse = FINDER.optionA.days >= FINDER.optionB.days ? FINDER.optionA : FINDER.optionB;
-  await page.locator('.finder select').selectOption({ label: worse.optionText });
+  await page.locator('.finder select').selectOption(worse.ptSlug);
 
   const band = page.locator('.verdict:visible');
   await expect(band).toHaveCount(1);

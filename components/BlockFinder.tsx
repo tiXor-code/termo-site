@@ -38,24 +38,36 @@ export interface BlockFinderProps {
 }
 
 export default function BlockFinder({ blocks, pts, defaultPt }: BlockFinderProps) {
-  // Only keep block options whose PT actually resolves to a rendered panel.
   const ptSlugs = useMemo(() => new Set(pts.map((p) => p.ptSlug)), [pts]);
-  const options = useMemo(
-    () => blocks.filter((b) => ptSlugs.has(b.pt)),
-    [blocks, ptSlugs],
-  );
+
+  // One option per PT, listing all its blocks (a PT serves many blocks on the
+  // same street — showing it once with the blocks grouped is far cleaner than
+  // one row per block). The renter finds their block in the list and the option
+  // resolves to that PT's panel.
+  const ptOptions = useMemo(() => {
+    const byPt = new Map<string, string[]>();
+    for (const b of blocks) {
+      if (!ptSlugs.has(b.pt)) continue;
+      const bare = b.label.replace(/^(bl\.?|imobile?|nr\.?)\s*/i, '').trim();
+      if (!bare) continue;
+      const list = byPt.get(b.pt) ?? [];
+      if (!list.some((x) => x.toLowerCase() === bare.toLowerCase())) list.push(bare);
+      byPt.set(b.pt, list);
+    }
+    const natkey = (s: string) =>
+      s.toLowerCase().split(/(\d+)/).map((t) => (/^\d+$/.test(t) ? t.padStart(6, '0') : t)).join('');
+    return pts
+      .map((p) => {
+        const labels = (byPt.get(p.ptSlug) ?? []).sort((a, b) => natkey(a).localeCompare(natkey(b)));
+        const blocksText = labels.length ? ` — bl. ${labels.join(', ')}` : '';
+        return { ptSlug: p.ptSlug, label: `${p.name}${blocksText}` };
+      });
+  }, [blocks, pts, ptSlugs]);
 
   const fallbackPt = pts[0]?.ptSlug ?? '';
   const initialPt = ptSlugs.has(defaultPt) ? defaultPt : fallbackPt;
   const [activePt, setActivePt] = useState(initialPt);
-
-  // The select is keyed by block-option index (a block label maps to a PT);
-  // the empty value means "show the default panel". Selecting a row in the
-  // serving-PT list selects that PT directly.
-  const selectValue = useMemo(() => {
-    const idx = options.findIndex((b) => b.pt === activePt);
-    return idx >= 0 ? String(idx) : '';
-  }, [options, activePt]);
+  const selectValue = ptSlugs.has(activePt) ? activePt : '';
 
   const ptCount = pts.length;
 
@@ -72,24 +84,17 @@ export default function BlockFinder({ blocks, pts, defaultPt }: BlockFinderProps
           aria-label="Alege blocul"
           value={selectValue}
           onChange={(e) => {
-            const v = e.target.value;
-            if (v === '') return;
-            const block = options[Number(v)];
-            if (block) setActivePt(block.pt);
+            if (e.target.value) setActivePt(e.target.value);
           }}
         >
           <option value="" disabled>
             Alege blocul sau zona…
           </option>
-          {options.map((b, i) => {
-            const pt = pts.find((p) => p.ptSlug === b.pt);
-            const ptName = pt ? pt.name : b.pt;
-            return (
-              <option key={`${b.label}-${b.pt}-${i}`} value={String(i)}>
-                {`${ptName} — ${b.label}`}
-              </option>
-            );
-          })}
+          {ptOptions.map((o) => (
+            <option key={o.ptSlug} value={o.ptSlug}>
+              {o.label}
+            </option>
+          ))}
         </select>
       </div>
 

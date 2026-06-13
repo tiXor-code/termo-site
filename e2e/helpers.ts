@@ -72,10 +72,10 @@ interface PtRecord {
   years: Record<string, { days: number }>;
 }
 
-/** A block option resolved to its serving PT's display label and lcy days. */
+/** A serving PT, identified by its slug (the <option> value) and lcy days. */
 export interface FinderOption {
-  /** The exact <option> text the BlockFinder renders: `PT <name> — <label>`. */
-  optionText: string;
+  /** PT slug — the <option> value the BlockFinder uses. */
+  ptSlug: string;
   /** lcy days for the serving PT — the verdict number that should appear. */
   days: number;
 }
@@ -83,17 +83,16 @@ export interface FinderOption {
 export interface FinderFixture {
   slug: string;
   ptCount: number;
-  /** Two block options whose serving PTs have DIFFERENT lcy days. */
+  /** Two serving PTs (one grouped option each) with DIFFERENT lcy days. */
   optionA: FinderOption;
   optionB: FinderOption;
 }
 
 /**
- * Resolve, straight from the bundle, a multi-PT street whose `blocks` field maps
- * to serving PTs with at least two distinct lcy day-counts. Returns the two
- * option labels + their expected verdict numbers so the finder spec proves that
- * picking different blocks yields different verdicts. Mirrors BlockFinder's
- * option text and the page's serving-PT filter (blocks whose PT serves the street).
+ * Resolve, straight from the bundle, a multi-PT street with `blocks` (so the
+ * finder renders) whose serving PTs have at least two distinct lcy day-counts.
+ * The finder now lists one grouped option per PT (value = PT slug), so the spec
+ * selects by slug and asserts the verdict number changes.
  */
 export function finderFixture(): FinderFixture {
   const year = String(lcy());
@@ -103,15 +102,17 @@ export function finderFixture(): FinderFixture {
   for (const st of streets) {
     if (st.pts.length < 2) continue;
     const serving = new Set(st.pts);
-    const opts = (st.blocks ?? []).filter((b) => serving.has(b.pt) && pts.has(b.pt));
-    if (opts.length < 2) continue;
+    // The finder only renders when there are blocks mapping to serving PTs.
+    const blockPts = new Set((st.blocks ?? []).map((b) => b.pt).filter((p) => serving.has(p)));
+    if (blockPts.size < 2) continue;
 
-    const toOption = (b: { label: string; pt: string }): FinderOption => {
-      const pt = pts.get(b.pt)!;
-      return { optionText: `PT ${pt.name} — ${b.label}`, days: pt.years[year]?.days ?? 0 };
-    };
-    const first = toOption(opts[0]);
-    const diff = opts.map(toOption).find((o) => o.days !== first.days);
+    const toOption = (ptSlug: string): FinderOption => ({
+      ptSlug,
+      days: pts.get(ptSlug)?.years[year]?.days ?? 0,
+    });
+    const order = st.pts.filter((p) => pts.has(p));
+    const first = toOption(order[0]);
+    const diff = order.map(toOption).find((o) => o.days !== first.days);
     if (!diff) continue;
 
     return { slug: st.slug, ptCount: st.pts.length, optionA: first, optionB: diff };
