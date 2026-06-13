@@ -6,11 +6,13 @@ import EpisodeTable from '@/components/EpisodeTable';
 import MethodologyFootnote from '@/components/MethodologyFootnote';
 import OutageStrip from '@/components/OutageStrip';
 import StatRow from '@/components/StatRow';
+import VerdictBand from '@/components/VerdictBand';
 import {
   getDistribution,
   getMeta,
   getPt,
   getPtAll,
+  getYearSummary,
   lastCompleteYear,
   type PtYear,
 } from '@/lib/data';
@@ -75,6 +77,7 @@ export default async function PunctTermicPage({
 
   const yearsDesc = [...meta.years].sort((a, b) => b - a);
   const lcyData = pt.years[String(lcy)] ?? EMPTY_YEAR;
+  const lcySummary = getYearSummary(lcy);
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
@@ -85,6 +88,16 @@ export default async function PunctTermicPage({
           { name: pt.name, href: `/punct-termic/${slug}` },
         ]}
       />
+
+      <VerdictBand
+        scope="pt"
+        days={lcyData.days}
+        year={lcy}
+        name={pt.name}
+        cityMedian={lcySummary.median_pt_days}
+        partial={lcySummary.partial}
+      />
+
       <h1 className="mt-6 font-display text-3xl font-bold">{pt.name}</h1>
       <p className="mt-3 max-w-2xl text-lg leading-snug">
         {lcyData.days > 0 ? (

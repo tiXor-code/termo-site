@@ -128,6 +128,13 @@ export interface StreetEntity {
   type: string;
   sectors: number[];
   pts: string[];
+  /**
+   * Block label → serving thermal-point (PT) slug, from the additive `blocks`
+   * field on the strazi bundle. ~98% of streets carry a non-empty array; some
+   * carry `[]`. Each `pt` resolves to a slug in `pt/all.ndjson.gz`. The NDJSON
+   * loader passes this through verbatim (it parses whole JSON records).
+   */
+  blocks: { label: string; pt: string }[];
   neighbors: string[];
   years: Record<string, StreetYear>;
 }
