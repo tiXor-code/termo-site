@@ -25,12 +25,22 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
 };
 
+// Example streets shown as hero chips — real slugs verified present in the bundle.
+const HERO_CHIPS: { slug: string; name: string }[] = [
+  { slug: 'sos-pantelimon', name: 'Șoseaua Pantelimon' },
+  { slug: 'drm-taberei', name: 'Drumul Taberei' },
+  { slug: 'cal-vitan', name: 'Calea Vitan' },
+  { slug: 'bld-lacul-tei', name: 'Bulevardul Tei' },
+];
+
 export default function HomePage() {
   const meta = getMeta();
   const lcy = lastCompleteYear();
   const summary = getYearSummary(lcy);
   const topPt = getPtRanking(lcy).slice(0, 10);
   const topStrazi = getStraziRanking(lcy).slice(0, 10);
+  const teaserStrazi = topStrazi.slice(0, 5);
+  const teaserMax = teaserStrazi.length > 0 ? teaserStrazi[0].days : 0;
   const sectoare = getSectoareRanking(lcy);
   const trend = getCitySummary().map((s) => ({
     label: String(s.year),
@@ -41,26 +51,81 @@ export default function HomePage() {
   const sectorValues: Record<number, number> = {};
   for (const r of sectoare) sectorValues[r.sector] = r.median_days;
 
+  // Total reconstructed outage episodes across all years (real figure).
+  const totalEpisodes = getCitySummary().reduce((acc, s) => acc + s.episodes, 0);
+  const sharePct = Math.round(summary.share_universe_hit_pct);
+
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10">
-      <section className="py-8">
-        <p className="display-num tnum text-7xl leading-none sm:text-8xl">
-          {fmtInt(summary.median_pt_days)}
+    <main className="mx-auto max-w-4xl px-4">
+      {/* ===== search-first hero ===== */}
+      <header className="hero">
+        <span className="eyebrow">Înainte să semnezi chiria</span>
+        <h1>Câte zile pe an stă strada ta fără apă caldă?</h1>
+        <p className="sub">
+          Istoricul complet al întreruperilor din București, stradă cu stradă, din 2021 până azi.
         </p>
-        <h1 className="mt-5 max-w-2xl text-xl leading-snug sm:text-2xl">
-          Jumătate din punctele termice din București au avut cel puțin{' '}
-          {fmtInt(summary.median_pt_days)} zile cu întreruperi de apă caldă în {lcy}.
-        </h1>
-        <p className="mt-3 max-w-2xl text-sm text-ink-soft">
-          Date reconstruite din anunțurile publice Termoenergetica, decembrie 2021 –{' '}
-          {fmtDateRo(meta.data_through)}. Acoperă zonele deservite de sistemul centralizat de
-          termoficare.
-        </p>
-        <div className="mt-8">
+        <div className="search-shell">
           <SearchBox variant="hero" indexUrl={clientAsset('search-index.json')} year={lcy} />
         </div>
+        <div className="chips">
+          {HERO_CHIPS.map((c) => (
+            <Link key={c.slug} className="chip" href={`/strada/${c.slug}`}>
+              {c.name}
+            </Link>
+          ))}
+        </div>
+      </header>
+
+      {/* ===== Cum stă Bucureștiul ===== */}
+      <section className="section border-t border-hairline py-12">
+        <h2 className="font-display text-2xl font-bold">Cum stă Bucureștiul</h2>
+        <p className="mt-1 text-sm text-ink-soft">
+          Datele se actualizează singure în fiecare noapte. Ultima actualizare:{' '}
+          {fmtDateRo(meta.data_through)}.
+        </p>
+
+        <div className="cards mt-7">
+          <div className="card">
+            <div className="big tnum">{fmtInt(summary.median_pt_days)}</div>
+            <div className="lab">zile mediane fără apă caldă pe punct termic, în {lcy}</div>
+          </div>
+          <div className="card">
+            <div className="big tnum">{sharePct}%</div>
+            <div className="lab">din punctele termice au fost afectate măcar o dată în {lcy}</div>
+          </div>
+          <div className="card">
+            <div className="big tnum">{fmtInt(totalEpisodes)}</div>
+            <div className="lab">episoade de întreruperi reconstruite, din decembrie 2021</div>
+          </div>
+        </div>
+
+        <h2 className="mt-9 mb-3.5 font-display text-xl font-bold">
+          Cele mai afectate străzi în {lcy}
+        </h2>
+        <ul className="teaser">
+          {teaserStrazi.map((r, i) => (
+            <li key={r.slug}>
+              <span className="rank tnum">{i + 1}</span>
+              <span className="name">
+                <Link href={`/strada/${r.slug}`}>{r.name}</Link>
+              </span>
+              <span className="bar">
+                <span
+                  style={{ width: `${teaserMax > 0 ? Math.round((r.days / teaserMax) * 100) : 0}%` }}
+                />
+              </span>
+              <span className="days tnum">
+                {fmtInt(r.days)} <small>zile</small>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <Link className="more" href="/clasament/strazi">
+          Vezi clasamentul complet →
+        </Link>
       </section>
 
+      {/* ===== existing dashboard (moved below the fold, unchanged) ===== */}
       <section className="mt-10 border-t border-hairline pt-6">
         <h2 className="font-display text-2xl font-bold">Pe luni — {lcy}</h2>
         <p className="mt-1 text-sm text-ink-soft">

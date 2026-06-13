@@ -1,15 +1,24 @@
 @import "tailwindcss";
 @theme {
-  --color-paper: #FAF8F5;
-  --color-ink: #1C1917;
-  --color-ink-soft: #57534E;
-  --color-hairline: #E7E2DA;
+  /* Warmed editorial palette (matches /tmp/styles.css mockup). Token NAMES are
+     stable — the rest of the site keys off them; only the values warmed. */
+  --color-paper: #FBF8F2;       /* warmed from #FAF8F5 */
+  --color-paper-2: #F4ECDF;     /* warm card surface */
+  --color-ink: #211C17;
+  --color-ink-soft: #6B635A;
+  --color-hairline: #E7DDCC;
   --color-avarie: #C2410C;
   --color-programat: #3B5BA9;
-  --color-ok: #E5E1D8;          /* strip track / zero state */
-  --color-nodata: #F1EEE8;
-  --color-heat-1: #E7E2DA; --color-heat-2: #E8C4AD;
+  --color-ok: #E9E0CF;          /* strip track / had hot water / zero state */
+  --color-nodata: #F1ECE2;
+  --color-heat-1: #E9E0CF; --color-heat-2: #E8C4AD;
   --color-heat-3: #DE9468; --color-heat-4: #CF6A33; --color-heat-5: #C2410C;
+  /* verdict scale — all dark enough for white pill text (>=4.5:1 contrast). */
+  --color-v-green: #2F6B45;
+  --color-v-amber: #8A6212;
+  --color-v-orange: #B0501E;
+  --color-v-red: #A8330A;
+  --color-accent: #B5491F;      /* warm terracotta for CTAs/tips */
   --font-sans: var(--font-sans-next), system-ui, sans-serif;
   --font-display: var(--font-serif-next), Georgia, serif;
 }
@@ -17,3 +26,165 @@
 .tnum { font-variant-numeric: tabular-nums; }
 .hairline-b { border-bottom: 1px solid var(--color-hairline); }
 .display-num { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; }
+
+/* ===== verdict band =====
+   Structural layout (from /tmp/styles.css). The per-grade COLOR is applied
+   below via .verdict[data-v]. */
+.verdict {
+  display: grid; grid-template-columns: auto 1fr; gap: 26px;
+  background: var(--color-paper-2);
+  border: 1px solid var(--color-hairline);
+  border-left: 6px solid var(--color-v-red); /* overridden per data-v */
+  border-radius: 16px; padding: 26px 28px; margin: 22px 0 12px;
+}
+.verdict .num { text-align: center; }
+.verdict .num b {
+  font-family: var(--font-display); font-weight: 700; font-size: 64px;
+  line-height: .9; display: block;
+}
+.verdict .num span { display: block; font-size: 13px; color: var(--color-ink-soft); margin-top: 6px; }
+.verdict .label {
+  display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .06em;
+  text-transform: uppercase; color: #fff; padding: 4px 11px; border-radius: 999px;
+  margin-bottom: 10px;
+}
+.verdict h2 {
+  font-family: var(--font-display); font-weight: 600; font-size: 22px;
+  line-height: 1.25; margin-bottom: 14px;
+}
+/* comparison: white sub-panel for contrast, dark labels, visible bars */
+.verdict .cmp { font-size: 14px; background: #fff; border: 1px solid var(--color-hairline); border-radius: 10px; padding: 14px 16px; }
+.verdict .cmp .note { color: var(--color-ink); font-size: 13px; margin-bottom: 10px; }
+.verdict .cmp .note b { font-weight: 600; }
+.verdict .cmp .row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.verdict .cmp .key { width: 150px; color: var(--color-ink); font-size: 13px; font-weight: 500; }
+.verdict .cmp .track { flex: 1; height: 16px; background: #ECE3D4; border-radius: 999px; overflow: hidden; }
+.verdict .cmp .track > span { display: block; height: 100%; border-radius: 999px; }
+.verdict .cmp .val { width: 52px; text-align: right; font-weight: 700; color: var(--color-ink); font-variant-numeric: tabular-nums; }
+
+@media (max-width: 640px) {
+  .verdict { grid-template-columns: 1fr; gap: 14px; padding: 22px; }
+  .verdict .num { text-align: left; display: flex; align-items: baseline; gap: 10px; }
+  .verdict .num b { font-size: 52px; }
+}
+
+/* ===== verdict color =====
+   .verdict[data-v] drives the per-grade color via the --v-cur custom property.
+   CRITICAL CONTRAST RULE: color ONLY the big number, the pill background, the
+   left border, and the bar FILL (.cmp .you .track > span). NEVER paint the
+   label/value text spans — they stay --color-ink on the white sub-panel. */
+.verdict[data-v="green"]  { border-left-color: var(--color-v-green);  --v-cur: var(--color-v-green); }
+.verdict[data-v="amber"]  { border-left-color: var(--color-v-amber);  --v-cur: var(--color-v-amber); }
+.verdict[data-v="orange"] { border-left-color: var(--color-v-orange); --v-cur: var(--color-v-orange); }
+.verdict[data-v="red"]    { border-left-color: var(--color-v-red);    --v-cur: var(--color-v-red); }
+.verdict .v-num   { color: var(--v-cur); }
+.verdict .v-pill  { background: var(--v-cur); }
+/* comparison: color confined to the YOU bar fill (direct child of its track);
+   the median bar fill is a neutral grey; labels/values never colored. */
+.verdict .cmp .you .track > span { background: var(--v-cur); }
+.verdict .cmp .med .track > span { background: #6E665B; }
+
+/* ===== renter tip ===== */
+.tip {
+  display: flex; gap: 12px; align-items: flex-start;
+  border: 1px dashed var(--color-accent); background: #FBEFE6;
+  border-radius: 12px; padding: 14px 16px; margin: 16px 0 6px; font-size: 15px;
+}
+.tip .ico { flex: none; font-size: 18px; line-height: 1.4; }
+
+/* mini verdict dots for serving-PT / segment lists (Phase 3) */
+.v-dot { display: inline-block; width: 9px; height: 9px; border-radius: 999px; }
+.v-dot[data-v="green"]  { background: var(--color-v-green); }
+.v-dot[data-v="amber"]  { background: var(--color-v-amber); }
+.v-dot[data-v="orange"] { background: var(--color-v-orange); }
+.v-dot[data-v="red"]    { background: var(--color-v-red); }
+
+/* ===== street page: block finder (Phase 3) =====
+   Structural styling from /tmp/styles.css. No verdict color leaks here —
+   color stays in .verdict / .tip / .v-dot. */
+.finder {
+  background: #fff; border: 1px solid var(--color-ink); border-radius: 14px;
+  padding: 20px 22px; margin: 20px 0 6px;
+}
+.finder .q { font-family: var(--font-display); font-weight: 600; font-size: 19px; margin-bottom: 4px; }
+.finder p { color: var(--color-ink-soft); font-size: 14px; margin-bottom: 14px; }
+.finder p b { color: var(--color-ink); font-weight: 600; }
+.finder select {
+  font-family: var(--font-sans); font-size: 16px; color: var(--color-ink);
+  border: 1.5px solid var(--color-ink); border-radius: 10px; padding: 11px 14px;
+  background: var(--color-paper); width: 100%; max-width: 420px; cursor: pointer;
+}
+.range { color: var(--color-ink-soft); font-size: 14px; }
+.range b { color: var(--color-ink); font-weight: 600; }
+
+/* serving-PT / zone list — rows are clickable (button or link). The dot carries
+   the only color (via .v-dot); the row text stays ink. */
+.pts { border-top: 1px solid var(--color-hairline); }
+.pts .r {
+  display: flex; gap: 14px; align-items: center;
+  padding: 9px 0; border-bottom: 1px solid var(--color-hairline);
+  font-size: 14px; color: var(--color-ink);
+  background: none; border-left: none; border-right: none; border-top: none;
+  cursor: pointer; text-decoration: none;
+}
+.pts .r .n { flex: 1; display: flex; align-items: center; gap: 7px; }
+.pts .r .v { color: var(--color-ink-soft); font-variant-numeric: tabular-nums; }
+.pts .r:hover { background: var(--color-paper-2); }
+.pts .r.sel { background: var(--color-paper-2); }
+
+/* history legend (reuses OutageStrip below it) */
+.legend { display: flex; gap: 18px; font-size: 13px; color: var(--color-ink-soft); margin: 6px 0 16px; flex-wrap: wrap; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+/* ===== home: search-first hero =====
+   Structural styling from /tmp/styles.css (var names mapped to --color-*). */
+.hero { text-align: center; padding: 72px 0 52px; }
+.hero .eyebrow {
+  display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--color-accent); margin-bottom: 18px;
+}
+.hero h1 {
+  font-family: var(--font-display); font-weight: 700; font-size: 42px;
+  line-height: 1.12; letter-spacing: -0.015em; max-width: 18ch; margin: 0 auto 14px;
+}
+.hero p.sub { color: var(--color-ink-soft); font-size: 18px; max-width: 46ch; margin: 0 auto 32px; }
+.hero .search-shell { max-width: 540px; margin: 0 auto; text-align: left; }
+.hero .chips { margin-top: 16px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+.hero .chip {
+  font-size: 13px; color: var(--color-ink-soft); text-decoration: none;
+  border: 1px solid var(--color-hairline); background: var(--color-paper-2);
+  padding: 6px 12px; border-radius: 999px;
+}
+.hero .chip:hover { border-color: var(--color-ink); color: var(--color-ink); }
+
+/* ===== home: city stat cards ===== */
+.cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.card { background: var(--color-paper-2); border: 1px solid var(--color-hairline); border-radius: 12px; padding: 20px; }
+.card .big { font-family: var(--font-display); font-weight: 700; font-size: 34px; line-height: 1; }
+.card .lab { color: var(--color-ink-soft); font-size: 13px; margin-top: 8px; }
+
+/* ===== home: worst-streets teaser ===== */
+.teaser { list-style: none; margin: 0; padding: 0; }
+.teaser li {
+  display: flex; align-items: center; gap: 14px;
+  padding: 11px 0; border-bottom: 1px solid var(--color-hairline);
+}
+.teaser li:last-child { border-bottom: none; }
+.teaser .rank { width: 22px; color: var(--color-ink-soft); font-size: 13px; text-align: right; }
+.teaser .name { flex: 1; font-weight: 500; }
+.teaser .name a { text-decoration: none; color: inherit; }
+.teaser .name a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.teaser .bar { flex: none; width: 160px; height: 9px; background: var(--color-ok); border-radius: 999px; overflow: hidden; }
+.teaser .bar > span { display: block; height: 100%; background: var(--color-v-red); }
+.teaser .days { width: 64px; text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+.teaser .days small { color: var(--color-ink-soft); font-weight: 400; }
+.more { color: var(--color-accent); font-size: 14px; margin-top: 12px; display: inline-block; text-decoration: none; }
+.more:hover { text-decoration: underline; }
+
+@media (max-width: 640px) {
+  .hero { padding: 44px 0 36px; }
+  .hero h1 { font-size: 30px; }
+  .hero p.sub { font-size: 16px; }
+  .cards { grid-template-columns: 1fr; }
+  .teaser .bar { display: none; }
+}
