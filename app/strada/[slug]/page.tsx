@@ -3,6 +3,7 @@ import Link from 'next/link';
 import BlockFinder, { type BlockFinderPt } from '@/components/BlockFinder';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import CompareModule from '@/components/CompareModule';
+import EpisodeTable from '@/components/EpisodeTable';
 import OutageStrip from '@/components/OutageStrip';
 import RenterTip from '@/components/RenterTip';
 import VerdictBand from '@/components/VerdictBand';
@@ -64,12 +65,21 @@ function PtHistory({
   street,
   yearsDesc,
   dataThrough,
+  lcy,
 }: {
   pt: PtEntity;
   street: string;
   yearsDesc: number[];
   dataThrough: string;
+  lcy: number;
 }) {
+  // Detailed episode log (cause, start, end, duration) for this block's PT.
+  // Inline we show the latest complete year (most relevant to a renter) and
+  // link to the PT page for the full multi-year log - rendering every year for
+  // every serving PT would bloat mega-streets (26 PTs) into multi-MB pages.
+  const lcyEpisodes = pt.years[String(lcy)]?.episodes ?? [];
+  const episodeYears = lcyEpisodes.length > 0 ? [{ year: lcy, episodes: lcyEpisodes }] : [];
+  const defaultOpenYear = lcy;
   return (
     <section className="mt-6">
       <h2 className="font-display text-xl font-bold">
@@ -111,6 +121,19 @@ function PtHistory({
           </div>
         );
       })}
+      {episodeYears.length > 0 && (
+        <div className="mt-6">
+          <h3 className="mb-2 font-display text-lg font-bold">
+            Ce s-a întâmplat, episod cu episod
+          </h3>
+          <EpisodeTable episodesByYear={episodeYears} defaultOpenYear={defaultOpenYear} />
+        </div>
+      )}
+      <p className="mt-4">
+        <Link href={`/punct-termic/${pt.slug}`} className="more">
+          Vezi toate episoadele (toți anii) pentru {pt.name} →
+        </Link>
+      </p>
     </section>
   );
 }
@@ -307,6 +330,7 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
           street={street.name}
           yearsDesc={yearsDesc}
           dataThrough={meta.data_through}
+          lcy={lcy}
         />
         {servingPts.length > 1 && (
           <ServingPtList servingPts={servingPts} lcy={lcy} />
@@ -346,6 +370,7 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
           street={street.name}
           yearsDesc={yearsDesc}
           dataThrough={meta.data_through}
+          lcy={lcy}
         />
       </>
     ),
