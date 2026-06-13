@@ -8,6 +8,7 @@ import SourceFooter from '@/components/SourceFooter';
 import { JsonLd, webSiteJsonLd } from '@/lib/seo';
 
 const GA_ID = 'G-2QJEM3G11G';
+const CLARITY_ID = 'x6bu13kw94';
 
 const serif = Source_Serif_4({
   subsets: ['latin', 'latin-ext'],
@@ -47,6 +48,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', '${GA_ID}');`}
+        </Script>
+        <Script id="clarity" strategy="afterInteractive">
+          {`(function(c,l,a,r,i,t,y){
+c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+})(window, document, "clarity", "script", "${CLARITY_ID}");`}
         </Script>
       </body>
     </html>
