@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
 import Link from 'next/link';
+import AddressBand from '@/components/AddressBand';
 import BlockFinder, { type BlockFinderPt } from '@/components/BlockFinder';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import CompareModule from '@/components/CompareModule';
@@ -171,6 +173,42 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
   // serves this street (resolves to a rendered panel).
   const servingSet = new Set(servingPts.map((s) => s.pt.slug));
   const blocks = (street.blocks ?? []).filter((b) => servingSet.has(b.pt));
+
+  // Pre-render each serving PT's verdict panel once (server-side, SSG-pure),
+  // keyed by slug, so the client AddressBand can surface whichever one a typed
+  // house number (?nr=) resolves to — identical markup to the block finder.
+  const renderPtPanel = (s: ServingPt): ReactNode => (
+    <>
+      <VerdictBand
+        days={s.days}
+        year={lcy}
+        name={`PT ${s.pt.name}`}
+        scope="block"
+        cityMedian={cityMedian}
+        partial={lcyPartial}
+      />
+      <RenterTip grade={s.key} />
+      <PtHistory pt={s.pt} street={street.name} yearsDesc={yearsDesc} dataThrough={meta.data_through} />
+    </>
+  );
+  const panelsByPt: Record<string, ReactNode> = {};
+  const ptName: Record<string, string> = {};
+  for (const s of servingPts) {
+    panelsByPt[s.pt.slug] = renderPtPanel(s);
+    ptName[s.pt.slug] = s.pt.name;
+  }
+  // The address pinpoint (client-only, ?nr=). Renders null without a number or a
+  // match, so every street page is byte-identical by default.
+  const addressBand = servingPts.length > 0 && (
+    <AddressBand
+      streetName={street.name}
+      addr={street.addr ?? {}}
+      pts={street.pts}
+      inferredPt={street.inferred_pt ?? null}
+      panelsByPt={panelsByPt}
+      ptName={ptName}
+    />
+  );
 
   const head = (
     <>
@@ -366,6 +404,7 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
     return (
       <main className="mx-auto max-w-3xl px-4 py-10">
         {head}
+        {addressBand}
         <VerdictBand
           days={repr.days}
           year={lcy}
@@ -403,30 +442,13 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
     name: `PT ${s.pt.name}`,
     days: s.days,
     grade: s.key,
-    panel: (
-      <>
-        <VerdictBand
-          days={s.days}
-          year={lcy}
-          name={`PT ${s.pt.name}`}
-          scope="block"
-          cityMedian={cityMedian}
-          partial={lcyPartial}
-        />
-        <RenterTip grade={s.key} />
-        <PtHistory
-          pt={s.pt}
-          street={street.name}
-          yearsDesc={yearsDesc}
-          dataThrough={meta.data_through}
-        />
-      </>
-    ),
+    panel: renderPtPanel(s),
   }));
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       {head}
+      {addressBand}
 
       {spreadMin !== spreadMax && (
         <p className="range mt-4">

@@ -67,6 +67,7 @@ interface StreetRecord {
   years: Record<string, { days: number }>;
   inferred_pt?: string | null;
   inferred_km?: number | null;
+  addr?: Record<string, [number, number | null]>;
 }
 
 interface PtRecord {
@@ -128,6 +129,36 @@ export function singlePtStreet(): { slug: string; name: string } {
   const st = readNdjsonGz<StreetRecord>('strazi/all.ndjson.gz').find((s) => s.pts.length === 1);
   if (!st) throw new Error('[e2e] no single-PT street in the bundle');
   return { slug: st.slug, name: st.name };
+}
+
+export interface AddressFixture {
+  slug: string;
+  name: string;
+  pts: string[];
+  /** A house number present in the street's addr map. */
+  number: string;
+  /** The serving PT slug that number resolves to. */
+  ptSlug: string;
+}
+
+/**
+ * A multi-PT street with a block finder (Case 3) AND a non-empty OSM `addr` map,
+ * so a typed house number resolves to one of its serving PTs while the finder
+ * still renders below. Mirrors finderFixture's "renders the BlockFinder" guard.
+ */
+export function addressedStreet(): AddressFixture {
+  const streets = readNdjsonGz<StreetRecord>('strazi/all.ndjson.gz');
+  for (const st of streets) {
+    if (st.pts.length < 2 || !st.addr) continue;
+    const serving = new Set(st.pts);
+    const blockPts = new Set((st.blocks ?? []).map((b) => b.pt).filter((p) => serving.has(p)));
+    if (blockPts.size < 2) continue; // ensures the BlockFinder renders
+    const hit = Object.entries(st.addr).find(([, v]) => v[0] >= 0 && st.pts[v[0]]);
+    if (!hit) continue;
+    const [number, [idx]] = hit;
+    return { slug: st.slug, name: st.name, pts: st.pts, number, ptSlug: st.pts[idx] };
+  }
+  throw new Error('[e2e] no multi-PT addressed street with a block finder in the bundle');
 }
 
 export interface InferredFixture {

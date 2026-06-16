@@ -169,6 +169,13 @@ export default function MetodologiePage() {
             o marcăm clar drept estimare. Estimarea poate fi greșită; sursa sigură ar fi registrul
             intern CMTEB.
           </li>
+          <li>
+            Căutarea după număr (de ex. „Colentina 64") alege, dintre punctele termice care
+            deservesc strada, pe cel mai apropiat de adresa respectivă — coordonatele numerelor
+            poștale vin din OpenStreetMap (ODbL), cu acoperire parțială. E tot o estimare după
+            proximitate, nu o cartare oficială adresă–punct termic; un număr care lipsește din
+            hartă folosește cea mai apropiată adresă cunoscută.
+          </li>
         </ul>
       </section>
 

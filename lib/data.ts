@@ -143,6 +143,14 @@ export interface StreetEntity {
    */
   inferred_pt?: string | null;
   inferred_km?: number | null;
+  /**
+   * Optional, additive: `{ house_number → [pt_index, estimate_km] }`. A long
+   * street is served by many PTs and the house NUMBER decides which one covers
+   * a stretch. `pt_index` indexes this record's `pts` array; `-1` = use
+   * `inferred_pt`. From OSM `addr:housenumber` (partial coverage); a proximity
+   * ESTIMATE, never authoritative. Absent when no OSM address matched the street.
+   */
+  addr?: Record<string, [number, number | null]>;
   years: Record<string, StreetYear>;
 }
 
