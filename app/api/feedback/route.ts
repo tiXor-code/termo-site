@@ -20,6 +20,38 @@ function rateLimited(ipHash: string): boolean {
   return false;
 }
 
+// Public, read-only tally of positive votes — powers the "▲ N" badge in the
+// widget. Served with a short CDN cache so it stays roughly live without
+// hitting Supabase on every page view. Any failure degrades to { up: 0 }
+// (the widget then simply omits the badge), never an error to the client.
+export async function GET() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const fail = () => Response.json({ up: 0 });
+  if (!url || !key) return fail();
+  try {
+    const res = await fetch(`${url}/rest/v1/fac_feedback?vote=eq.up&select=id`, {
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+        Prefer: "count=exact",
+        "Range-Unit": "items",
+        Range: "0-0",
+      },
+    });
+    if (!res.ok) return fail();
+    // PostgREST returns the exact total in Content-Range: "0-0/61" (or "*/0").
+    const total = Number(res.headers.get("content-range")?.split("/")[1]);
+    const up = Number.isFinite(total) ? total : 0;
+    return Response.json(
+      { up },
+      { headers: { "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600" } },
+    );
+  } catch {
+    return fail();
+  }
+}
+
 export async function POST(req: Request) {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;

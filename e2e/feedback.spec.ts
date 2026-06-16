@@ -1,9 +1,19 @@
 import { expect, test } from "@playwright/test";
 
 // The API route needs Supabase envs that exist only on Vercel, so every spec
-// intercepts /api/feedback and fulfills 204 - we test the widget, not Supabase.
-function intercept(page: import("@playwright/test").Page) {
-  return page.route("**/api/feedback", (route) => route.fulfill({ status: 204 }));
+// intercepts /api/feedback - we test the widget, not Supabase. GET returns the
+// positive-vote tally (default 0 = no badge); POST (a vote) fulfills 204.
+function intercept(page: import("@playwright/test").Page, up = 0) {
+  return page.route("**/api/feedback", (route) => {
+    if (route.request().method() === "GET") {
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ up }),
+      });
+    }
+    return route.fulfill({ status: 204 });
+  });
 }
 
 test("up-vote: thanks, then suppressed after reload", async ({ page }) => {
@@ -15,6 +25,13 @@ test("up-vote: thanks, then suppressed after reload", async ({ page }) => {
   await expect(region.getByText("Mulțumim!")).toBeVisible();
   await page.reload();
   await expect(page.getByRole("region", { name: "Feedback despre site" })).toHaveCount(0);
+});
+
+test("up button shows the running positive-vote tally as a badge", async ({ page }) => {
+  await intercept(page, 61);
+  await page.goto("/");
+  const region = page.getByRole("region", { name: "Feedback despre site" });
+  await expect(region.getByRole("button", { name: "Da, mi-a fost util" })).toContainText("61");
 });
 
 test("down-vote: textarea expands, message submits", async ({ page }) => {
