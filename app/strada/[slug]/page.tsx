@@ -43,11 +43,16 @@ export async function generateMetadata({
   const lcy = lastCompleteYear();
   const firstYear = meta.years[0];
   const lastYear = meta.years[meta.years.length - 1];
+  // OSM-only streets (no real outage data) carry an estimated PT - noindex
+  // them so we don't flood the index with thin/estimated pages; still findable
+  // via on-site search.
+  const noData = Object.keys(street.years).length === 0;
   return {
     title: streetTitle(street, firstYear, lastYear),
     description: streetDescription(street, lcy, firstYear, lastYear),
     alternates: { canonical: `/strada/${slug}` },
     openGraph: { images: [siteUrl(`/og/${slug}`)] },
+    ...(noData ? { robots: { index: false, follow: true } } : {}),
   };
 }
 
@@ -289,18 +294,64 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
   );
 
   // -------------------------------------------------------------------------
-  // Case 1 — 0 serving PTs resolve: minimal current-style street view.
+  // Case 0 — OSM street CMTEB never named, but we inferred a serving PT:
+  // show that PT's real history, clearly framed as a proximity ESTIMATE.
+  // -------------------------------------------------------------------------
+  const inferredPt = street.inferred_pt ? ptAll.get(street.inferred_pt) : undefined;
+  if (servingPts.length === 0 && inferredPt) {
+    const iDays = inferredPt.years[String(lcy)]?.days ?? 0;
+    return (
+      <main className="mx-auto max-w-3xl px-4 py-10">
+        {head}
+        <p className="mt-5 border border-hairline bg-paper-2 p-4 text-sm leading-snug">
+          <b>{street.name}</b> nu apare direct în anunțurile Termoenergetica. Zona e deservită{' '}
+          <b>probabil</b> de punctul termic{' '}
+          <Link href={`/punct-termic/${inferredPt.slug}`} className="underline">
+            {inferredPt.name}
+          </Link>{' '}
+          (estimare după proximitate{street.inferred_km ? `, ~${street.inferred_km} km` : ''}).
+          Cifrele de mai jos sunt ale acelui punct termic.
+        </p>
+        <VerdictBand
+          days={iDays}
+          year={lcy}
+          name={`PT ${inferredPt.name}`}
+          scope="block"
+          cityMedian={cityMedian}
+          partial={lcyPartial}
+        />
+        <RenterTip grade={gradeFor(iDays).key} />
+        <PtHistory
+          pt={inferredPt}
+          street={street.name}
+          yearsDesc={yearsDesc}
+          dataThrough={meta.data_through}
+        />
+        <p className="mt-6 text-sm">
+          <Link href={`/punct-termic/${inferredPt.slug}`} className="more">
+            Vezi punctul termic {inferredPt.name} →
+          </Link>
+        </p>
+      </main>
+    );
+  }
+
+  // -------------------------------------------------------------------------
+  // Case 1 — no serving PT and no inference: street not in CMTEB's data.
   // -------------------------------------------------------------------------
   if (servingPts.length === 0) {
+    const noData = Object.keys(street.years).length === 0;
     return (
       <main className="mx-auto max-w-3xl px-4 py-10">
         {head}
         <p className="mt-3 max-w-2xl text-lg leading-snug">
-          {lcyData.days > 0
-            ? `${street.name} a avut ${fmtZile(lcyData.days)} cu întreruperi de apă caldă în ${lcy}.`
-            : `Fără întreruperi înregistrate în ${lcy}.`}
+          {noData
+            ? `${street.name} nu apare în anunțurile publice Termoenergetica. Vezi harta sau punctele termice din zonă.`
+            : lcyData.days > 0
+              ? `${street.name} a avut ${fmtZile(lcyData.days)} cu întreruperi de apă caldă în ${lcy}.`
+              : `Fără întreruperi înregistrate în ${lcy}.`}
         </p>
-        {unionDisclosure}
+        {!noData && unionDisclosure}
         {neighborsSection}
       </main>
     );

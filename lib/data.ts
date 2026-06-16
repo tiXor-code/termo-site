@@ -136,6 +136,13 @@ export interface StreetEntity {
    */
   blocks: { label: string; pt: string }[];
   neighbors: string[];
+  /**
+   * For an OSM-sourced street CMTEB never named (so `years` is empty), the
+   * geographically-inferred serving PT slug + its distance in km. Shown as an
+   * ESTIMATE on-site. `null`/absent for streets with real outage data.
+   */
+  inferred_pt?: string | null;
+  inferred_km?: number | null;
   years: Record<string, StreetYear>;
 }
 

@@ -162,6 +162,13 @@ export default function MetodologiePage() {
             Site-ul se reconstruiește o dată pe noapte. O avarie rezolvată recent poate apărea încă
             activă („în curs") până la următoarea actualizare.
           </li>
+          <li>
+            Termoenergetica numește doar o parte dintre străzile pe care le deservește un punct
+            termic. Pentru o stradă pe care nu a numit-o niciodată, îi estimăm punctul termic după
+            proximitate (cel mai apropiat punct termic ale cărui străzi numite sunt în preajmă) și
+            o marcăm clar drept estimare. Estimarea poate fi greșită; sursa sigură ar fi registrul
+            intern CMTEB.
+          </li>
         </ul>
       </section>
 
