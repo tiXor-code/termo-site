@@ -5,6 +5,8 @@ import {
   prepareIndex,
   scoreEntry,
   search,
+  searchAddress,
+  splitHouseNumber,
   type SearchEntry,
 } from '@/lib/search';
 
@@ -70,5 +72,34 @@ describe('lib/search', () => {
   it('entryHref maps both types', () => {
     expect(entryHref(ENTRIES[0])).toBe('/strada/sos-oltenitei');
     expect(entryHref(ENTRIES[2])).toBe('/punct-termic/pt-modul-toporasi');
+  });
+});
+
+describe('house-number search', () => {
+  it('splits a trailing house number from the street part', () => {
+    expect(splitHouseNumber('Colentina 64')).toEqual({ streetPart: 'colentina', nr: '64' });
+    expect(splitHouseNumber('Constantin Radulescu Motru 12')).toEqual({
+      streetPart: 'constantin radulescu motru',
+      nr: '12',
+    });
+    expect(splitHouseNumber('Colentina 64A')).toEqual({ streetPart: 'colentina', nr: '64a' });
+    expect(splitHouseNumber('Colentina 64-66')).toEqual({ streetPart: 'colentina', nr: '64-66' });
+  });
+
+  it('leaves bare streets and bare numbers untouched', () => {
+    expect(splitHouseNumber('Pajurei')).toEqual({ streetPart: 'pajurei', nr: null });
+    expect(splitHouseNumber('64')).toEqual({ streetPart: '64', nr: null });
+    // a street whose name ends in a word (even if it starts with a number)
+    expect(splitHouseNumber('13 Septembrie')).toEqual({ streetPart: '13 septembrie', nr: null });
+  });
+
+  it('searchAddress tags street results with the number, PTs untouched', () => {
+    const prepared = prepareIndex(ENTRIES);
+    const results = searchAddress(prepared, 'oltenitei 64');
+    const street = results.find((r) => r.s === 'sos-oltenitei');
+    expect(street?.nr).toBe('64');
+    expect(entryHref(street!)).toBe('/strada/sos-oltenitei?nr=64');
+    // bare query behaves exactly like search()
+    expect(searchAddress(prepared, 'oltenitei').map((r) => r.s)).toContain('sos-oltenitei');
   });
 });

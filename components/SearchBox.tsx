@@ -9,7 +9,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   entryHref,
   prepareIndex,
-  search,
+  searchAddress,
   type PreparedEntry,
   type SearchEntry,
 } from '@/lib/search';
@@ -91,7 +91,7 @@ function SearchBoxInner({
     return () => document.removeEventListener('pointerdown', onPointerDown);
   }, []);
 
-  const results = prepared && query.trim() !== '' ? search(prepared, query, 8) : [];
+  const results = prepared && query.trim() !== '' ? searchAddress(prepared, query, 8) : [];
   const showEmpty =
     open && prepared !== null && query.trim() !== '' && results.length === 0;
   const showList = open && results.length > 0;
@@ -164,7 +164,9 @@ function SearchBoxInner({
               onMouseEnter={() => setActive(i)}
               onClick={() => setOpen(false)}
             >
-              <span className="min-w-0 flex-1 truncate">{e.n}</span>
+              <span className="min-w-0 flex-1 truncate">
+                {e.nr ? `${e.n}, nr. ${e.nr}` : e.n}
+              </span>
               <span className="text-xs uppercase text-ink-soft">{typeBadge(e)}</span>
               {e.sec !== null && <span className="text-xs text-ink-soft">Sector {e.sec}</span>}
               <span className="tnum text-xs text-ink-soft">

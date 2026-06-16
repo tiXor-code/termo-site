@@ -12,6 +12,11 @@ export interface PreparedEntry extends SearchEntry {
   nf: string; // folded name
 }
 
+/** A street result may carry a typed house number ("Colentina 64"). */
+export interface SearchResult extends PreparedEntry {
+  nr?: string | null;
+}
+
 /** Diacritic fold + lowercase — handles ș/ț/ă/â/î (and legacy ş/ţ). */
 export function fold(s: string): string {
   return s
@@ -47,6 +52,40 @@ export function search(prepared: PreparedEntry[], query: string, limit = 8): Pre
   return scored.slice(0, limit).map((s) => s.e);
 }
 
-export function entryHref(e: SearchEntry): string {
-  return e.t === 'pt' ? `/punct-termic/${e.s}` : `/strada/${e.s}`;
+// A trailing house number after the street: "64", "64a", "64-66", "12 bis".
+const HOUSE_NR = /[\s,]+(\d+[a-z]?(?:[-/]\d+[a-z]?)?(?:\s*bis)?)$/u;
+
+/**
+ * Split a typed query into a street part and an optional house number.
+ * "Colentina 64" -> { streetPart: "colentina", nr: "64" };
+ * "Constantin Radulescu Motru 12" -> { ..., nr: "12" };
+ * "Pajurei" / "64" -> { streetPart, nr: null }. The street part must contain a
+ * letter, so a bare number is not treated as an address.
+ */
+export function splitHouseNumber(query: string): { streetPart: string; nr: string | null } {
+  const f = fold(query.trim());
+  const m = HOUSE_NR.exec(f);
+  if (m) {
+    const streetPart = f.slice(0, m.index).trim();
+    if (/\p{L}/u.test(streetPart)) {
+      return { streetPart, nr: m[1].replace(/\s+/g, ' ').trim() };
+    }
+  }
+  return { streetPart: f, nr: null };
+}
+
+/**
+ * Number-aware search. With a house number, match the street part only and tag
+ * street results with `nr` (so the UI shows "…, nr. N" and links to ?nr=N).
+ * Without one, identical to `search`.
+ */
+export function searchAddress(prepared: PreparedEntry[], query: string, limit = 8): SearchResult[] {
+  const { streetPart, nr } = splitHouseNumber(query);
+  if (nr === null) return search(prepared, query, limit);
+  return search(prepared, streetPart, limit).map((e) => (e.t === 'st' ? { ...e, nr } : e));
+}
+
+export function entryHref(e: SearchEntry & { nr?: string | null }): string {
+  if (e.t === 'pt') return `/punct-termic/${e.s}`;
+  return e.nr ? `/strada/${e.s}?nr=${encodeURIComponent(e.nr)}` : `/strada/${e.s}`;
 }
