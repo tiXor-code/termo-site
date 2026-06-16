@@ -3,6 +3,8 @@
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+import { fmtInt } from "@/lib/format";
+
 // Floating "was this useful?" pill. Up = one-tap vote; down expands a small
 // feedback panel. localStorage suppresses the pill after a vote (30d) or a
 // dismiss (14d) so it never nags.
@@ -37,11 +39,28 @@ export default function FeedbackWidget() {
   const [visible, setVisible] = useState(false);
   const [stage, setStage] = useState<Stage>("idle");
   const [message, setMessage] = useState("");
+  const [upCount, setUpCount] = useState<number | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setVisible(!suppressed());
   }, []);
+
+  // Pull the running tally of positive votes for the "▲ N" badge. Best-effort:
+  // any failure leaves upCount null and the badge simply doesn't render.
+  useEffect(() => {
+    if (!visible) return;
+    let alive = true;
+    fetch("/api/feedback")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (alive && d && typeof d.up === "number") setUpCount(d.up);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [visible]);
 
   useEffect(() => {
     if (stage === "down") textareaRef.current?.focus();
@@ -125,11 +144,14 @@ export default function FeedbackWidget() {
             aria-label="Da, mi-a fost util"
             disabled={stage === "sending"}
             onClick={() => send("up")}
-            className="border border-hairline px-2 py-1 hover:bg-ok"
+            className="inline-flex items-center gap-1 border border-hairline px-2 py-1 hover:bg-ok"
           >
             <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
               <path d="M7 2 L12 9 L2 9 Z" fill="currentColor" />
             </svg>
+            {upCount != null && upCount > 0 && (
+              <span className="tnum text-xs">{fmtInt(upCount)}</span>
+            )}
           </button>
           <button
             type="button"
