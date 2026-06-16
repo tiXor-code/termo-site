@@ -1,8 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { finderFixture, singlePtStreet } from './helpers';
+import { finderFixture, inferredStreet, singlePtStreet } from './helpers';
 
 const FINDER = finderFixture();
 const SINGLE = singlePtStreet();
+const INFERRED = inferredStreet();
 
 test('multi-PT street: block finder present, selecting two blocks yields different verdicts', async ({
   page,
@@ -39,6 +40,39 @@ test('single-PT street: direct verdict, no finder', async ({ page }) => {
   await expect(page.locator('.finder')).toHaveCount(0);
   await expect(page.locator('.verdict')).toHaveCount(1);
   await expect(page.locator('.verdict .v-num')).toBeVisible();
+});
+
+test('OSM-only street: proximity-estimate page (banner + inferred PT number, no finder, noindex)', async ({
+  page,
+}) => {
+  await page.goto(`/strada/${INFERRED.slug}`);
+
+  // Prominent estimate banner: framed as "probabil" / "estimare după proximitate".
+  const main = page.locator('main');
+  await expect(main).toContainText('probabil');
+  await expect(main).toContainText('estimare după proximitate');
+
+  // It surfaces the inferred PT's verdict number (the estimate), not a street union.
+  const vnum = await page.locator('.verdict .v-num').first().textContent();
+  expect(vnum?.replace(/\D/g, '')).toBe(String(INFERRED.days));
+  // Links through to the inferred PT page.
+  await expect(page.locator(`a[href="/punct-termic/${INFERRED.inferredPt}"]`).first()).toBeVisible();
+
+  // No block finder (no block data for a street CMTEB never named).
+  await expect(page.locator('.finder')).toHaveCount(0);
+
+  // Thin/estimated content is kept out of the index.
+  await expect(page.locator('head meta[name="robots"]')).toHaveAttribute(
+    'content',
+    /noindex/,
+  );
+});
+
+test('OSM-only/estimate streets are excluded from the sitemap', async ({ request }) => {
+  const res = await request.get('/sitemap.xml');
+  expect(res.status()).toBe(200);
+  const body = await res.text();
+  expect(body).not.toContain(`/strada/${INFERRED.slug}`);
 });
 
 test('verdict band contrast: grade color never paints label/value/note text', async ({ page }) => {

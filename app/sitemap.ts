@@ -22,7 +22,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
   }
   for (const slug of getPtAll().keys()) add(`/punct-termic/${slug}`);
-  for (const slug of getStradaAll().keys()) add(`/strada/${slug}`);
+  // Only streets with real outage data; OSM-only/estimate streets are noindex.
+  for (const [slug, st] of getStradaAll()) {
+    if (Object.keys(st.years).length > 0) add(`/strada/${slug}`);
+  }
   for (let s = 1; s <= 6; s++) add(`/sector/${s}`);
   add('/harta');
   add('/metodologie');

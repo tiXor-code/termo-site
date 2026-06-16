@@ -64,6 +64,9 @@ interface StreetRecord {
   name: string;
   pts: string[];
   blocks?: { label: string; pt: string }[];
+  years: Record<string, { days: number }>;
+  inferred_pt?: string | null;
+  inferred_km?: number | null;
 }
 
 interface PtRecord {
@@ -125,4 +128,36 @@ export function singlePtStreet(): { slug: string; name: string } {
   const st = readNdjsonGz<StreetRecord>('strazi/all.ndjson.gz').find((s) => s.pts.length === 1);
   if (!st) throw new Error('[e2e] no single-PT street in the bundle');
   return { slug: st.slug, name: st.name };
+}
+
+export interface InferredFixture {
+  slug: string;
+  name: string;
+  /** The geographically-inferred serving PT slug. */
+  inferredPt: string;
+  /** That PT's lcy days — the estimate number the page should surface. */
+  days: number;
+}
+
+/**
+ * An OSM-only street CMTEB never named (empty `years`) that carries an inferred
+ * serving PT — the proximity-estimate page variant. Prefers `str-dambovita`
+ * (the feature's acceptance case: it resolves to `pt-desisului`) when present,
+ * else the first inferred street in the bundle.
+ */
+export function inferredStreet(): InferredFixture {
+  const year = String(lcy());
+  const pts = new Map(readNdjsonGz<PtRecord>('pt/all.ndjson.gz').map((p) => [p.slug, p]));
+  const streets = readNdjsonGz<StreetRecord>('strazi/all.ndjson.gz');
+  const candidates = streets.filter(
+    (s) => Object.keys(s.years).length === 0 && s.inferred_pt && pts.has(s.inferred_pt),
+  );
+  const chosen = candidates.find((s) => s.slug === 'str-dambovita') ?? candidates[0];
+  if (!chosen) throw new Error('[e2e] no OSM-only street with an inferred PT in the bundle');
+  return {
+    slug: chosen.slug,
+    name: chosen.name,
+    inferredPt: chosen.inferred_pt as string,
+    days: pts.get(chosen.inferred_pt as string)?.years[year]?.days ?? 0,
+  };
 }
