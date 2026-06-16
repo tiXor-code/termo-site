@@ -102,4 +102,16 @@ describe('house-number search', () => {
     // bare query behaves exactly like search()
     expect(searchAddress(prepared, 'oltenitei').map((r) => r.s)).toContain('sos-oltenitei');
   });
+
+  it('hyphenated/dotted names match when typed with spaces', () => {
+    const prepared = prepareIndex([
+      { t: 'st', n: 'Str Constantin Radulescu-Motru', s: 'str-constantin-radulescu-motru', sec: 4, d: 30 },
+      { t: 'st', n: 'Str C.A. Rosetti', s: 'str-c-a-rosetti', sec: 1, d: 5 },
+    ]);
+    expect(search(prepared, 'constantin radulescu motru').map((r) => r.s)).toContain(
+      'str-constantin-radulescu-motru',
+    );
+    expect(searchAddress(prepared, 'Constantin Radulescu Motru 12')[0]?.nr).toBe('12');
+    expect(search(prepared, 'c a rosetti').map((r) => r.s)).toContain('str-c-a-rosetti');
+  });
 });

@@ -25,8 +25,21 @@ export function fold(s: string): string {
     .toLowerCase();
 }
 
+/**
+ * Search normalization: fold, then treat `- / . ' ,` as spaces so a typed
+ * "Constantin Radulescu Motru" matches "Constantin Radulescu-Motru" and
+ * "C A Rosetti" matches "C.A. Rosetti". Distinct from `fold` — house-number
+ * keys ("64-66") depend on `fold`, so this is used ONLY for name matching.
+ */
+export function searchFold(s: string): string {
+  return fold(s)
+    .replace(/[-/.'’,]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function prepareIndex(entries: SearchEntry[]): PreparedEntry[] {
-  return entries.map((e) => ({ ...e, nf: fold(e.n) }));
+  return entries.map((e) => ({ ...e, nf: searchFold(e.n) }));
 }
 
 /** 3 = full prefix, 2 = word-boundary prefix, 1 = substring, 0 = no match. */
@@ -41,7 +54,7 @@ export function scoreEntry(qf: string, nf: string): 0 | 1 | 2 | 3 {
 
 /** Score desc, ties broken by d desc. Empty/whitespace query → []. */
 export function search(prepared: PreparedEntry[], query: string, limit = 8): PreparedEntry[] {
-  const qf = fold(query.trim());
+  const qf = searchFold(query);
   if (qf === '') return [];
   const scored: { e: PreparedEntry; score: number }[] = [];
   for (const e of prepared) {
