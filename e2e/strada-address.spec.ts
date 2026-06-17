@@ -18,27 +18,29 @@ test('search with a house number routes to the street with ?nr', async ({ page }
   await expect(page).toHaveURL(new RegExp(`/strada/${ADDR.slug}\\?nr=`));
 });
 
-test('address page shows the proximity-estimate band, a serving PT, finder still below', async ({
+test('address page: number pre-selects the serving PT, one section (no duplicate)', async ({
   page,
 }) => {
   await page.goto(`/strada/${ADDR.slug}?nr=${encodeURIComponent(ADDR.number)}`);
   const main = page.locator('main');
 
-  // the address band (client-rendered from ?nr) names the address + estimate
+  // the estimate note (rendered inside the finder) names the address + estimate
   await expect(main).toContainText(`${ADDR.name} ${ADDR.number}`);
-  await expect(main).toContainText('probabil');
   await expect(main).toContainText('estimare după proximitate');
 
-  // the resolved PT's verdict is shown, and the block finder is still present
-  await expect(page.locator('.verdict .v-num').first()).toBeVisible();
-  await expect(page.locator('.finder')).toHaveCount(1);
+  // exactly ONE visible verdict panel — proves the section is not duplicated
+  await expect(page.locator('.verdict:visible .v-num')).toHaveCount(1);
+  // the finder <select> is pre-set to the resolved serving PT
+  await expect(page.locator('.finder select')).toHaveValue(ADDR.ptSlug);
+  // the old separate-band prompt is gone
+  await expect(main).not.toContainText('Nu e adresa ta');
 });
 
-test('no ?nr -> no address band (street page byte-identical to today)', async ({ page }) => {
+test('no ?nr -> no address note, finder at default, single section', async ({ page }) => {
   await page.goto(`/strada/${ADDR.slug}`);
-  // give the client a beat; the band must never appear without ?nr
+  // give the client a beat; the note must never appear without ?nr
   await page.waitForLoadState('networkidle');
   await expect(page.locator('main')).not.toContainText('estimare după proximitate');
-  // the block finder still renders the normal page
+  await expect(page.locator('.verdict:visible .v-num')).toHaveCount(1);
   await expect(page.locator('.finder')).toHaveCount(1);
 });

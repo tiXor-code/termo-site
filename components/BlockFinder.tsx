@@ -6,13 +6,20 @@
 // `blocks` field (label → PT slug); the matching server-rendered panel
 // (VerdictBand + RenterTip + that PT's history) is revealed.
 //
+// When the page is opened with ?nr=N (an address search), the finder PRE-SELECTS
+// the PT that covers that house number and shows a one-line estimate note — so
+// the result is a single section with the selector on top, not a duplicate.
+//
 // SSG-safety: every PT panel is rendered on the server (so OutageStrip stays a
 // server component and the build stays pure SSG) and passed in as `panels`.
 // This component holds NO data layer — it only toggles which pre-rendered panel
 // is visible and which serving-PT row is highlighted. Color/contrast rules live
 // entirely in the server markup + globals.css; nothing here paints text.
 
-import { useMemo, useState, type ReactNode } from 'react';
+import { Suspense, useMemo, useState, type ReactNode } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { resolveAddr, type AddrMap } from '@/lib/address';
+import { fold } from '@/lib/search';
 import type { Grade } from '@/lib/verdict';
 
 export interface BlockFinderPt {
@@ -35,9 +42,24 @@ export interface BlockFinderProps {
   pts: BlockFinderPt[];
   /** PT slug selected on first paint (a representative mid PT). */
   defaultPt: string;
+  /** Address resolution inputs — when present, ?nr=N pre-selects the serving PT. */
+  addr?: AddrMap;
+  streetPts?: string[];
+  inferredPt?: string | null;
+  streetName?: string;
 }
 
-export default function BlockFinder({ blocks, pts, defaultPt }: BlockFinderProps) {
+interface InnerProps {
+  blocks: { label: string; pt: string }[];
+  pts: BlockFinderPt[];
+  defaultPt: string;
+  /** PT slug resolved from ?nr=N (overrides defaultPt when in the finder). */
+  resolved: string | null;
+  /** One-line address estimate note rendered above the select. */
+  note: ReactNode;
+}
+
+function BlockFinderInner({ blocks, pts, defaultPt, resolved, note }: InnerProps) {
   const ptSlugs = useMemo(() => new Set(pts.map((p) => p.ptSlug)), [pts]);
 
   // One option per PT, listing all its blocks (a PT serves many blocks on the
@@ -65,7 +87,8 @@ export default function BlockFinder({ blocks, pts, defaultPt }: BlockFinderProps
   }, [blocks, pts, ptSlugs]);
 
   const fallbackPt = pts[0]?.ptSlug ?? '';
-  const initialPt = ptSlugs.has(defaultPt) ? defaultPt : fallbackPt;
+  const wanted = resolved && ptSlugs.has(resolved) ? resolved : defaultPt;
+  const initialPt = ptSlugs.has(wanted) ? wanted : fallbackPt;
   const [activePt, setActivePt] = useState(initialPt);
   const selectValue = ptSlugs.has(activePt) ? activePt : '';
 
@@ -73,6 +96,7 @@ export default function BlockFinder({ blocks, pts, defaultPt }: BlockFinderProps
 
   return (
     <>
+      {note}
       <div className="finder">
         <div className="q">Care e blocul tău?</div>
         <p>
@@ -129,5 +153,53 @@ export default function BlockFinder({ blocks, pts, defaultPt }: BlockFinderProps
         </div>
       </section>
     </>
+  );
+}
+
+function BlockFinderWithNr(props: BlockFinderProps) {
+  const params = useSearchParams();
+  const rawNr = params.get('nr') ?? '';
+  const res = props.addr
+    ? resolveAddr(props.addr, rawNr, props.streetPts ?? [], props.inferredPt ?? null)
+    : null;
+  const resolvedSlug = res && props.pts.some((p) => p.ptSlug === res.slug) ? res.slug : null;
+
+  let note: ReactNode = null;
+  if (resolvedSlug && res) {
+    const name = props.pts.find((p) => p.ptSlug === resolvedSlug)?.name;
+    const kmNote = !res.interpolated && res.km != null ? `, ~${res.km} km` : '';
+    const interpNote = res.interpolated ? '; numărul exact nu apare în hartă' : '';
+    note = name ? (
+      <p className="mb-4 border border-hairline bg-paper-2 p-4 text-sm leading-snug">
+        <b>
+          Adresa: {props.streetName} {fold(rawNr).trim()}
+        </b>{' '}
+        — am ales mai jos punctul termic cel mai probabil (<b>{name}</b>, estimare după
+        proximitate{kmNote}
+        {interpNote}). Verifică sau schimbă blocul dacă e nevoie.
+      </p>
+    ) : null;
+  }
+
+  return (
+    <BlockFinderInner
+      blocks={props.blocks}
+      pts={props.pts}
+      defaultPt={props.defaultPt}
+      resolved={resolvedSlug}
+      note={note}
+    />
+  );
+}
+
+export default function BlockFinder(props: BlockFinderProps) {
+  const base = { blocks: props.blocks, pts: props.pts, defaultPt: props.defaultPt };
+  if (!props.addr) {
+    return <BlockFinderInner {...base} resolved={null} note={null} />;
+  }
+  return (
+    <Suspense fallback={<BlockFinderInner {...base} resolved={null} note={null} />}>
+      <BlockFinderWithNr {...props} />
+    </Suspense>
   );
 }
