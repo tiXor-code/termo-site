@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import AddressBand from '@/components/AddressBand';
+import AddressNote from '@/components/AddressNote';
 import BlockFinder, { type BlockFinderPt } from '@/components/BlockFinder';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import CompareModule from '@/components/CompareModule';
@@ -174,9 +174,9 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
   const servingSet = new Set(servingPts.map((s) => s.pt.slug));
   const blocks = (street.blocks ?? []).filter((b) => servingSet.has(b.pt));
 
-  // Pre-render each serving PT's verdict panel once (server-side, SSG-pure),
-  // keyed by slug, so the client AddressBand can surface whichever one a typed
-  // house number (?nr=) resolves to — identical markup to the block finder.
+  // One server-rendered verdict panel per serving PT (SSG-pure), reused by the
+  // block finder. Address resolution (?nr=) pre-selects the right PT INSIDE the
+  // finder (Case 3) or is shown as a one-line note (Case 2) — never a duplicate.
   const renderPtPanel = (s: ServingPt): ReactNode => (
     <>
       <VerdictBand
@@ -191,21 +191,16 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
       <PtHistory pt={s.pt} street={street.name} yearsDesc={yearsDesc} dataThrough={meta.data_through} />
     </>
   );
-  const panelsByPt: Record<string, ReactNode> = {};
   const ptName: Record<string, string> = {};
-  for (const s of servingPts) {
-    panelsByPt[s.pt.slug] = renderPtPanel(s);
-    ptName[s.pt.slug] = s.pt.name;
-  }
-  // The address pinpoint (client-only, ?nr=). Renders null without a number or a
-  // match, so every street page is byte-identical by default.
-  const addressBand = servingPts.length > 0 && (
-    <AddressBand
+  for (const s of servingPts) ptName[s.pt.slug] = s.pt.name;
+  // Note-only address line for pages with NO finder (single-PT / no-blocks).
+  // Case 3 streets show the estimate inside the BlockFinder instead.
+  const addressNote = servingPts.length > 0 && (
+    <AddressNote
       streetName={street.name}
       addr={street.addr ?? {}}
       pts={street.pts}
       inferredPt={street.inferred_pt ?? null}
-      panelsByPt={panelsByPt}
       ptName={ptName}
     />
   );
@@ -404,7 +399,7 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
     return (
       <main className="mx-auto max-w-3xl px-4 py-10">
         {head}
-        {addressBand}
+        {addressNote}
         <VerdictBand
           days={repr.days}
           year={lcy}
@@ -448,7 +443,6 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
   return (
     <main className="mx-auto max-w-3xl px-4 py-10">
       {head}
-      {addressBand}
 
       {spreadMin !== spreadMax && (
         <p className="range mt-4">
@@ -457,7 +451,15 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         </p>
       )}
 
-      <BlockFinder blocks={blocks} pts={finderPts} defaultPt={repr.pt.slug} />
+      <BlockFinder
+        blocks={blocks}
+        pts={finderPts}
+        defaultPt={repr.pt.slug}
+        addr={street.addr ?? {}}
+        streetPts={street.pts}
+        inferredPt={street.inferred_pt ?? null}
+        streetName={street.name}
+      />
 
       {unionDisclosure}
       {neighborsSection}
