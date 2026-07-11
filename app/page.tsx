@@ -21,7 +21,7 @@ export const dynamic = 'error';
 
 export const metadata: Metadata = {
   description:
-    'Câte zile pe an stă Bucureștiul fără apă caldă: clasamente pe puncte termice, străzi și sectoare, reconstruite din anunțurile publice Termoenergetica.',
+    'Câte zile pe an stă strada ta fără apă caldă? Istoricul complet al întreruperilor din București, din 2021 până azi, plus avariile în curs. Actualizat zilnic.',
   alternates: { canonical: '/' },
 };
 
@@ -84,7 +84,9 @@ export default function HomePage() {
           {fmtDateRo(meta.data_through)}.
         </p>
 
-        <div className="cards mt-7">
+        {/* data-nosnippet: Google was assembling the SERP snippet from these stat
+            fragments instead of the meta description; keep all numeric blocks out. */}
+        <div className="cards mt-7" data-nosnippet="">
           <div className="card">
             <div className="big tnum">{fmtInt(summary.median_pt_days)}</div>
             <div className="lab">zile mediane fără apă caldă pe punct termic, în {lcy}</div>
@@ -102,7 +104,7 @@ export default function HomePage() {
         <h2 className="mt-9 mb-3.5 font-display text-xl font-bold">
           Cele mai afectate străzi în {lcy}
         </h2>
-        <ul className="teaser">
+        <ul className="teaser" data-nosnippet="">
           {teaserStrazi.map((r, i) => (
             <li key={r.slug}>
               <span className="rank tnum">{i + 1}</span>
@@ -131,7 +133,7 @@ export default function HomePage() {
         <p className="mt-1 text-sm text-ink-soft">
           Zile cumulate (punct termic × zi) cu întreruperi de apă caldă, pe lună.
         </p>
-        <div className="mt-4">
+        <div className="mt-4" data-nosnippet="">
           <MonthBars
             values={summary.monthly_pt_days}
             year={lcy}
@@ -140,7 +142,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <div className="mt-12 grid gap-x-12 gap-y-12 md:grid-cols-2">
+      <div className="mt-12 grid gap-x-12 gap-y-12 md:grid-cols-2" data-nosnippet="">
         <section>
           <h2 className="hairline-b pb-2 font-display text-2xl font-bold">
             Cele mai afectate puncte termice
@@ -208,7 +210,7 @@ export default function HomePage() {
         </section>
       </div>
 
-      <div className="mt-12 grid gap-x-12 gap-y-12 md:grid-cols-2">
+      <div className="mt-12 grid gap-x-12 gap-y-12 md:grid-cols-2" data-nosnippet="">
         <section>
           <h2 className="hairline-b pb-2 font-display text-2xl font-bold">Pe sectoare</h2>
           <table className="mt-3 w-full max-w-xs border-collapse text-sm tnum">
@@ -254,7 +256,7 @@ export default function HomePage() {
 
       <section className="mt-12 border-t border-hairline pt-6">
         <h2 className="font-display text-2xl font-bold">Evoluție pe ani</h2>
-        <div className="mt-4">
+        <div className="mt-4" data-nosnippet="">
           <TrendBars series={trend} unitLabel="mediana zilelor fără apă caldă pe punct termic" />
         </div>
         <p className="mt-4 text-sm">
