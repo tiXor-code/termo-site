@@ -1,0 +1,86 @@
+name: Claude PR Review
+
+# Stack-agnostic autonomous reviewer (review-only; does NOT merge).
+#
+# On every PR (opened / new commits / reopened) Claude reads the full diff, judges
+# correctness + quality + how well it matches the PR description, and posts a review:
+# APPROVE for clean work, or REQUEST_CHANGES with specific items and an "@claude ..."
+# comment so the fixer (claude.yml) can address them. After 3 unresolved rounds it
+# labels `needs-human` instead of looping. Merging is left to a human by design --
+# this is a safe default across live-site repos. Flip on auto-merge per repo later.
+#
+# Auth: CLAUDE_CODE_OAUTH_TOKEN (a Claude subscription token). Until that secret is
+# set the review step is skipped (env guard), so this file is dormant, not failing.
+# Requires the Claude GitHub App installed on the repo (git identity + checkout).
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  id-token: write
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Skip drafts and PRs opened by bots (keeps a public repo from being driven by
+    # external bot PRs); the fixer's own pushes come back through as the PR author.
+    if: >
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.fork == false
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+    steps:
+      - name: Ensure needs-human label
+        run: gh label create needs-human --repo "${{ github.repository }}" --color b60205 --description "Autonomous review loop needs a human" --force || true
+
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Review
+        if: env.CLAUDE_CODE_OAUTH_TOKEN != ''
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          # A re-review runs after @claude pushes a fix, so the actor may be a bot.
+          # Named bots only (never "*") so external bots can't drive the action.
+          allowed_bots: "claude[bot],claude,github-actions[bot]"
+          prompt: |
+            You are the autonomous code reviewer for ${{ github.repository }}. Review pull
+            request #${{ github.event.pull_request.number }}. Do NOT merge; only review.
+
+            If the repo has a CLAUDE.md or AGENTS.md, read it first and enforce its rules.
+
+            Steps (use the gh CLI, act decisively, do not ask questions):
+            1. `gh pr view ${{ github.event.pull_request.number }}` and
+               `gh pr diff ${{ github.event.pull_request.number }}`. Read the ENTIRE diff.
+            2. Judge: correctness and edge cases; security (injection, authz, secrets, unsafe
+               input handling); code quality and simplicity; and how accurately the change
+               implements the PR description. Prefer a small number of high-signal comments
+               over nitpicks. If tests exist for the touched area, check they were updated.
+            3. Decide:
+               - If correct, complete, and good quality:
+                 `gh pr review ${{ github.event.pull_request.number }} --approve --body "<2-4 lines on what you verified>"`
+               - Otherwise check the loop cap first:
+                 `gh pr view ${{ github.event.pull_request.number }} --json reviews` and count
+                 CHANGES_REQUESTED reviews. If >= 3, run
+                 `gh pr edit ${{ github.event.pull_request.number }} --add-label needs-human`,
+                 comment that the loop did not converge, and STOP.
+                 If < 3, run
+                 `gh pr review ${{ github.event.pull_request.number }} --request-changes --body "<specific, actionable items>"`
+                 then `gh pr comment ${{ github.event.pull_request.number }} --body "@claude please address this review: <concise bullet list>"`.
+            Never post secrets or tokens in a comment. Reference file:line only.
+          claude_args: |
+            --allowedTools "Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh pr review:*),Bash(gh pr comment:*),Bash(gh pr edit:*),Bash(gh pr checks:*),Bash(gh label:*),Bash(git log:*),Bash(git diff:*),Bash(cat:*),Bash(ls:*),Bash(grep:*),Bash(rg:*)"
+            --max-turns 30
