@@ -14,11 +14,47 @@ export function fmtDec(n: number, digits = 1): string {
   }).format(n);
 }
 
-/** Romanian plural for "zile": 1 → "1 zi", 2–19 → "N zile", >=20 → "N de zile". */
+/**
+ * Does a Romanian numeral need the "de" linker before its noun?
+ *
+ * The rule keys off the LAST TWO digits, not the magnitude: 1–19 take the bare
+ * noun ("115 zile", "o sută cincisprezece zile"), 20–99 and exact hundreds take
+ * "de" ("22 de zile", "100 de zile", "1.000 de zile"). Zero is written bare.
+ */
+export function needsDe(n: number): boolean {
+  const abs = Math.abs(Math.round(n));
+  if (abs === 0) return false;
+  const rest = abs % 100;
+  return rest === 0 ? abs >= 100 : rest >= 20;
+}
+
+/** "3 zile" / "1 zi" / "22 de zile" / "115 zile" — plural + the "de" linker. */
 export function fmtZile(n: number): string {
   if (n === 1) return '1 zi';
-  if (n >= 20) return `${fmtInt(n)} de zile`;
-  return `${fmtInt(n)} zile`;
+  return needsDe(n) ? `${fmtInt(n)} de zile` : `${fmtInt(n)} zile`;
+}
+
+/** "4 ore" / "1 oră" / "47 de ore"; sub-hour spans get a words-only fallback. */
+export function fmtOre(n: number): string {
+  const r = Math.round(n);
+  if (r <= 0) return 'mai puțin de o oră';
+  if (r === 1) return '1 oră';
+  return needsDe(r) ? `${fmtInt(r)} de ore` : `${fmtInt(r)} ore`;
+}
+
+/** "4.187 de avarii" / "115 avarii" — a count with the right "de" linker. */
+export function fmtCu(n: number, noun: string): string {
+  return needsDe(n) ? `${fmtInt(n)} de ${noun}` : `${fmtInt(n)} ${noun}`;
+}
+
+/**
+ * Hours as a readable span: "6 ore" under two days, "98 de ore (≈ 4,1 zile)"
+ * above, so long planned works stay legible.
+ */
+export function fmtDurata(hours: number): string {
+  const label = fmtOre(hours);
+  if (hours < 48) return label;
+  return `${label} (≈ ${fmtDec(hours / 24)} zile)`;
 }
 
 const MONTHS_LONG = [
@@ -30,6 +66,16 @@ const MONTHS_SHORT = [
   'ian.', 'feb.', 'mar.', 'apr.', 'mai', 'iun.',
   'iul.', 'aug.', 'sep.', 'oct.', 'noi.', 'dec.',
 ];
+
+/** 1-based month → "august". Returns "" for anything out of range. */
+export function monthNameRo(month: number): string {
+  return MONTHS_LONG[month - 1] ?? '';
+}
+
+/** Percentages as whole numbers: 58.7 → "59%". */
+export function fmtPct(n: number): string {
+  return `${fmtInt(Math.round(n))}%`;
+}
 
 /** "2025-10-16" / "2025-10-16T23:00" → "16 octombrie 2025". */
 export function fmtDateRo(iso: string): string {

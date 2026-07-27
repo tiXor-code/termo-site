@@ -125,6 +125,43 @@ export default function MetodologiePage() {
         </div>
       </section>
 
+      <section id="durate-si-termene" className="mt-12 border-t border-hairline pt-6">
+        <h2 className="font-display text-2xl font-bold">Durate și termene anunțate</h2>
+        <div className="mt-3 max-w-2xl space-y-3 leading-relaxed">
+          <p>
+            Paginile de sector publică și cât <em>durează</em> o întrerupere, nu doar câte zile sunt
+            atinse. Durata unui episod încheiat este diferența dintre începutul și sfârșitul lui,
+            adică între prima și ultima apariție a punctului termic în lista oficială de funcționare.
+            Ambele capete sunt ore locale București comparate ca oră de perete; un episod care
+            traversează schimbarea de oră poate ieși cu o oră în plus sau în minus, ceea ce nu mută
+            medianele publicate. Episoadele încă deschise („în curs") nu intră în calculul duratelor,
+            fiindcă nu au un sfârșit.
+          </p>
+          <p>
+            Episoadele care traversează o pauză de colectare intră în calcul cu durata lor estimată
+            (creditul la margini plafonat la 3 ore pe fiecare parte, vezi{' '}
+            <Link href="#episoade" className="underline">
+              cum reconstruim episoadele
+            </Link>
+            ). Le păstrăm intenționat: sunt tocmai episoadele lungi, iar excluderea lor ar trage
+            medianele artificial în jos.
+          </p>
+          <p>
+            „Termenul anunțat" este ultima oră de restabilire publicată de Termoenergetica pentru
+            episodul respectiv. Spunem că termenul a fost respectat când punctul termic a dispărut
+            din lista de funcționare cel târziu la ora anunțată. Este o măsură a listei publice, nu o
+            măsurătoare la robinet: dacă un anunț este prelungit, ora anunțată se mută odată cu el,
+            iar ultima valoare este cea cu care comparăm.
+          </p>
+          <p>
+            „Zile-punct-termic pe lună" numără perechi distincte (punct termic, zi calendaristică) —
+            un punct termic oprit 3 zile în august contribuie cu 3. Zilele de deficiență nu intră.
+            Sezonalitatea se calculează doar pe anii întregi, fiindcă anii parțiali ar înclina
+            lunile.
+          </p>
+        </div>
+      </section>
+
       <section id="strazi" className="mt-12 border-t border-hairline pt-6">
         <h2 className="font-display text-2xl font-bold">De ce punctul termic, nu strada</h2>
         <div className="mt-3 max-w-2xl space-y-3 leading-relaxed">

@@ -43,6 +43,24 @@ export function breadcrumbJsonLd(items: { name: string; href: string }[]): objec
   };
 }
 
+/**
+ * FAQPage JSON-LD. The `a` strings MUST be the exact text rendered on the page —
+ * Google treats a mismatch between markup and visible answer as a violation, and
+ * we have no business shipping an answer the reader cannot see.
+ */
+export function faqPageJsonLd(items: { q: string; a: string }[]): object {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    inLanguage: 'ro',
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: { '@type': 'Answer', text: item.a },
+    })),
+  };
+}
+
 /** Dataset JSON-LD — used only on /metodologie. */
 export function datasetJsonLd(meta: Meta): object {
   return {
@@ -67,9 +85,21 @@ export function datasetJsonLd(meta: Meta): object {
   };
 }
 
+/**
+ * JSON.stringify leaves `<` alone, so a scraped name containing `</script>`
+ * (or `<!--`) would terminate the inline script and let third-party data run as
+ * markup — SEC042, and the JSON-LD payloads carry thermal-point and street names
+ * straight from Termoenergetica's announcements. `<` is valid JSON, parses
+ * back to `<`, and cannot close a tag. `>` goes with it so a `]]>` in an XHTML
+ * parse cannot end a CDATA section either. Exported for the regression test.
+ */
+export function serializeJsonLd(data: object): string {
+  return JSON.stringify(data).replace(/</g, '\\u003c').replace(/>/g, '\\u003e');
+}
+
 export function JsonLd({ data }: { data: object }): JSX.Element {
   return createElement('script', {
     type: 'application/ld+json',
-    dangerouslySetInnerHTML: { __html: JSON.stringify(data) },
+    dangerouslySetInnerHTML: { __html: serializeJsonLd(data) },
   });
 }

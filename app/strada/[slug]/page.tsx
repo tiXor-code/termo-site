@@ -24,7 +24,7 @@ import {
 import { fmtInt, fmtZile, yearLabel } from '@/lib/format';
 import { siteUrl } from '@/lib/seo';
 import { gradeFor } from '@/lib/verdict';
-import { sectorsPhrase, streetDescription, streetTitle } from '@/lib/seo-meta';
+import { streetDescription, streetTitle } from '@/lib/seo-meta';
 
 export const dynamic = 'error';
 export const dynamicParams = false;
@@ -215,7 +215,24 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         ]}
       />
       <h1 className="mt-6 font-display text-3xl font-bold">{street.name}</h1>
-      <p className="mt-1 text-sm text-ink-soft">{sectorsPhrase(street.sectors)} · București</p>
+      <p className="mt-1 text-sm text-ink-soft">
+        {street.sectors.length === 0 ? (
+          'București'
+        ) : (
+          <>
+            {street.sectors.length === 1 ? 'Sector ' : 'Sectoarele '}
+            {street.sectors.map((s, i) => (
+              <span key={s}>
+                {i > 0 ? (i === street.sectors.length - 1 ? ' și ' : ', ') : ''}
+                <Link href={`/sector/${s}`} className="underline">
+                  {s}
+                </Link>
+              </span>
+            ))}
+            {' · București'}
+          </>
+        )}
+      </p>
     </>
   );
 

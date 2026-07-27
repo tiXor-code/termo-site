@@ -1,0 +1,20 @@
+[
+  {
+    "sector": 3,
+    "pts": 1,
+    "median_days": 0,
+    "mean_days": 0.0,
+    "mean_days_avarie": 0.0,
+    "mean_days_programat": 0.0,
+    "episodes": 0
+  },
+  {
+    "sector": 4,
+    "pts": 1,
+    "median_days": 5,
+    "mean_days": 5.0,
+    "mean_days_avarie": 5.0,
+    "mean_days_programat": 0.0,
+    "episodes": 1
+  }
+]

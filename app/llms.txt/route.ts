@@ -1,4 +1,10 @@
-import { getCitySummary, getMeta, getPtRanking, lastCompleteYear } from "@/lib/data";
+import {
+  getCitySummary,
+  getMeta,
+  getPtRanking,
+  getSectoareRanking,
+  lastCompleteYear,
+} from "@/lib/data";
 import { siteUrl } from "@/lib/seo";
 
 // /llms.txt - machine-readable site primer for AI crawlers/agents (GEO).
@@ -11,6 +17,7 @@ export async function GET() {
   const lcy = lastCompleteYear();
   const summary = getCitySummary().filter((y) => !y.partial && y.year > 2021);
   const worst = getPtRanking(lcy)[0];
+  const sectoare = [...getSectoareRanking(lcy)].sort((a, b) => a.sector - b.sector);
 
   const lines = [
     "# Fără Apă Caldă",
@@ -34,6 +41,10 @@ export async function GET() {
     "## Pagini principale",
     "",
     `- [Clasamente](${siteUrl(`/clasament/puncte-termice/${lcy}`)}): puncte termice, străzi și sectoare, pe ani`,
+    ...sectoare.map(
+      (s) =>
+        `- [Sector ${s.sector}](${siteUrl(`/sector/${s.sector}`)}): ultima stare cunoscută, durata avariilor, întrebări frecvente; mediana ${s.median_days} zile pe punct termic în ${lcy}`,
+    ),
     `- [Acasă + căutare](${siteUrl("/")}): caută orice stradă sau punct termic`,
     `- [Hartă](${siteUrl("/harta")}): toate punctele termice, colorate după zilele cu întreruperi`,
     `- [Metodologie](${siteUrl("/metodologie")}): surse, reguli de numărare, limitări, verificări încrucișate (Wayback, PMB, ANRE)`,

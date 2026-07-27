@@ -1,6 +1,33 @@
 // Title/description builders for detail pages (Group C owns this file).
 import type { PtEntity, StreetEntity } from '@/lib/data';
-import { fmtInt } from '@/lib/format';
+import { fmtDurata, fmtInt, fmtZile } from '@/lib/format';
+
+/**
+ * Sector hub title. Front-loaded with the phrase people actually search
+ * ("apă caldă sector N") — the layout appends " | Fără Apă Caldă".
+ */
+export function sectorTitle(sector: number, medianDays: number, year: number): string {
+  return `Apă caldă Sector ${sector} — avarii și opriri, ${fmtZile(medianDays)} în ${year}`;
+}
+
+/**
+ * Sector hub description. `avarieMedianHours` is the median duration of resolved
+ * unplanned outages in the sector (null when the window holds none), so the
+ * snippet answers "when does it come back" before the click.
+ */
+export function sectorDescription(
+  sector: number,
+  medianDays: number,
+  year: number,
+  avarieMedianHours: number | null,
+): string {
+  const head = `Sectorul ${sector}: mediana de ${fmtZile(medianDays)} fără apă caldă pe punct termic în ${year}`;
+  const dur =
+    avarieMedianHours === null
+      ? ''
+      : `, avarii încheiate în mediană în ${fmtDurata(avarieMedianHours)}`;
+  return `${head}${dur}. Când se dă drumul la apa caldă, cele mai afectate străzi și puncte termice.`;
+}
 
 /** "Sector 4" / "Sectoarele 2 și 3" / "Sectoarele 2, 3 și 4". */
 export function sectorsPhrase(sectors: number[]): string {
