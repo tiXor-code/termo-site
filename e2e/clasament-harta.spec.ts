@@ -45,7 +45,7 @@ test(`clasament strazi ${YEAR}: 100 rows SSR, "Arată toate" loads the rest`, as
 
 test('sector 4: median stat and trend bars', async ({ page }) => {
   await page.goto('/sector/4');
-  await expect(page.locator('h1')).toHaveText('Sector 4');
+  await expect(page.locator('h1')).toHaveText('Apă caldă în Sectorul 4');
   // StatHero median value.
   await expect(page.locator('.display-num').first()).toHaveText(/\d/);
   // TrendBars renders a figure > svg.

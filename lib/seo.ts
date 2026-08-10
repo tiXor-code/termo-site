@@ -43,6 +43,23 @@ export function breadcrumbJsonLd(items: { name: string; href: string }[]): objec
   };
 }
 
+/**
+ * FAQPage JSON-LD. `answer` must be the exact plain text rendered on the page
+ * (Google requires the markup to match visible content).
+ */
+export function faqJsonLd(items: { question: string; answer: string }[]): object {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    inLanguage: 'ro',
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: { '@type': 'Answer', text: item.answer },
+    })),
+  };
+}
+
 /** Dataset JSON-LD — used only on /metodologie. */
 export function datasetJsonLd(meta: Meta): object {
   return {
@@ -68,8 +85,10 @@ export function datasetJsonLd(meta: Meta): object {
 }
 
 export function JsonLd({ data }: { data: object }): JSX.Element {
+  // Escape "<" so bundle-derived strings (PT/street names from scraped
+  // announcements) can never close the script tag from inside the JSON.
   return createElement('script', {
     type: 'application/ld+json',
-    dangerouslySetInnerHTML: { __html: JSON.stringify(data) },
+    dangerouslySetInnerHTML: { __html: JSON.stringify(data).replace(/</g, '\\u003c') },
   });
 }
