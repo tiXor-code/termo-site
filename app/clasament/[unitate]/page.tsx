@@ -19,9 +19,9 @@ export async function generateMetadata({
   const meta = getMeta();
   const lcy = lastCompleteYear();
   const titles: Record<Unitate, string> = {
-    'puncte-termice': `Clasamentul punctelor termice după zile fără apă caldă — ${lcy}`,
-    strazi: `Clasamentul străzilor după zile fără apă caldă — ${lcy}`,
-    sectoare: `Sectoarele Bucureștiului după zile fără apă caldă — ${lcy}`,
+    'puncte-termice': `Clasamentul punctelor termice — ${lcy}`,
+    strazi: `Clasamentul străzilor — ${lcy}`,
+    sectoare: `Clasamentul sectoarelor — ${lcy}`,
   };
   return {
     title: titles[unitate],

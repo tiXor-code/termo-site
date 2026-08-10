@@ -37,7 +37,7 @@ export async function generateMetadata({
   if (!pt) return {};
   const lcy = lastCompleteYear();
   return {
-    title: ptTitle(pt, lcy),
+    title: ptTitle(pt),
     description: ptDescription(pt, lcy),
     alternates: { canonical: `/punct-termic/${slug}` },
     openGraph: { images: [siteUrl(`/og/${slug}`)] },

@@ -30,7 +30,7 @@ export async function generateMetadata({
   const lcy = lastCompleteYear();
   const row = getSectoareRanking(lcy).find((r) => r.sector === Number(id));
   return {
-    title: `Sector ${id} — apă caldă în București | mediana ${row ? fmtInt(row.median_days) : '?'} zile fără apă caldă în ${lcy}`,
+    title: `Sector ${id} — apă caldă în București`,
     description: `Sectorul ${id} al Bucureștiului: mediana ${row ? fmtInt(row.median_days) : '?'} zile cu întreruperi de apă caldă pe punct termic în ${lcy}, media ${row ? fmtDec(row.mean_days) : '?'} zile. Evoluție pe ani și cele mai afectate puncte termice.`,
     alternates: { canonical: `/sector/${id}` },
   };

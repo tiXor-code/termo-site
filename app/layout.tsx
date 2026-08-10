@@ -25,7 +25,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'https://faraapacalda.ro'),
   title: {
-    default: 'Fără Apă Caldă — câte zile pe an stă Bucureștiul fără apă caldă',
+    default: 'Fără Apă Caldă — câte zile stă Bucureștiul fără apă caldă',
     template: '%s | Fără Apă Caldă',
   },
 };

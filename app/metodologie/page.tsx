@@ -7,7 +7,7 @@ import { JsonLd, datasetJsonLd } from '@/lib/seo';
 export const dynamic = 'error';
 
 export const metadata: Metadata = {
-  title: 'Metodologie',
+  title: 'Metodologie — cum măsurăm întreruperile',
   description:
     'Cum reconstruim zilele fără apă caldă din București: surse, reconstrucția episoadelor, ce numărăm, limitări și verificări încrucișate.',
   alternates: { canonical: '/metodologie' },

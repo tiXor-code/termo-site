@@ -10,9 +10,8 @@ export function sectorsPhrase(sectors: number[]): string {
   return `Sectoarele ${sectors.slice(0, -1).join(', ')} și ${last}`;
 }
 
-export function ptTitle(pt: PtEntity, an: number): string {
-  const days = pt.years[String(an)]?.days ?? 0;
-  return `${pt.name} — punct termic, Sector ${pt.sector} | ${fmtInt(days)} zile fără apă caldă în ${an}`;
+export function ptTitle(pt: PtEntity): string {
+  return `${pt.name} — punct termic, Sector ${pt.sector}`;
 }
 
 export function ptDescription(pt: PtEntity, an: number): string {
@@ -23,8 +22,8 @@ export function ptDescription(pt: PtEntity, an: number): string {
   return `${pt.name} (Sector ${pt.sector}) a avut ${fmtInt(y.days)} zile cu întreruperi de apă caldă în ${an}: ${fmtInt(y.days_avarie)} din avarii și ${fmtInt(y.days_programat)} din lucrări programate.`;
 }
 
-export function streetTitle(street: StreetEntity, firstYear: number, lastYear: number): string {
-  return `Apă caldă pe ${street.name}, ${sectorsPhrase(street.sectors)} | zile cu întreruperi ${firstYear}–${lastYear}`;
+export function streetTitle(street: StreetEntity): string {
+  return `Apă caldă pe ${street.name}, ${sectorsPhrase(street.sectors)}`;
 }
 
 export function streetDescription(

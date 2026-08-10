@@ -50,7 +50,7 @@ export async function generateMetadata({
   // via on-site search.
   const noData = Object.keys(street.years).length === 0;
   return {
-    title: streetTitle(street, firstYear, lastYear),
+    title: streetTitle(street),
     description: streetDescription(street, lcy, firstYear, lastYear),
     alternates: { canonical: `/strada/${slug}` },
     openGraph: { images: [siteUrl(`/og/${slug}`)] },

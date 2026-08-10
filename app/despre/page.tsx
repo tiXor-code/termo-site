@@ -6,7 +6,7 @@ import { fmtDateRo } from '@/lib/format';
 export const dynamic = 'error';
 
 export const metadata: Metadata = {
-  title: 'Despre',
+  title: 'Despre proiect și sursele de date',
   description:
     'Cine face Fără Apă Caldă și de ce: un proiect independent de date despre întreruperile de apă caldă din București.',
   alternates: { canonical: '/despre' },

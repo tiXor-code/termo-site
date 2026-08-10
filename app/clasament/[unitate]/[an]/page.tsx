@@ -25,9 +25,9 @@ export async function generateMetadata({
   const year = Number(an);
   const meta = getMeta();
   const titles: Record<Unitate, string> = {
-    'puncte-termice': `Clasamentul punctelor termice după zile fără apă caldă — ${year}`,
-    strazi: `Clasamentul străzilor după zile fără apă caldă — ${year}`,
-    sectoare: `Sectoarele Bucureștiului după zile fără apă caldă — ${year}`,
+    'puncte-termice': `Clasamentul punctelor termice — ${year}`,
+    strazi: `Clasamentul străzilor — ${year}`,
+    sectoare: `Clasamentul sectoarelor — ${year}`,
   };
   // The last complete year's canonical home is the yearless page.
   const canonical =

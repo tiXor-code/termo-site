@@ -12,7 +12,7 @@ import { fmtDec, fmtInt } from '@/lib/format';
 export const dynamic = 'error';
 
 export const metadata: Metadata = {
-  title: 'Clasamente — puncte termice, străzi și sectoare',
+  title: 'Clasamentele zilelor fără apă caldă',
   description:
     'Clasamentele zilelor fără apă caldă din București: puncte termice, străzi și sectoare, pe fiecare an.',
   alternates: { canonical: '/clasament' },
