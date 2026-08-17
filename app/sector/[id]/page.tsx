@@ -31,6 +31,16 @@ function fmtIntreruperi(n: number): string {
   return `${n} întreruperi`;
 }
 
+/** "un punct termic" / "3 puncte termice" / "56 de puncte termice". */
+function fmtPuncteTermice(n: number): string {
+  if (n === 1) return 'un punct termic';
+  if (n >= 20) return `${fmtInt(n)} de puncte termice`;
+  return `${n} puncte termice`;
+}
+
+/** Names shown inline per announcement before the rest folds into <details>. */
+const PTS_SHOWN = 6;
+
 /** Median avarie duration for prose: "sub o oră" / "9 ore" / "2,5 zile". */
 function fmtDurata(hours: number): string {
   if (hours < 1) return 'sub o oră';
@@ -51,12 +61,21 @@ function statusSentence(sector: number, live: SectorLive, dataThrough: string): 
   }
   const n = live.ongoing.length;
   const avarii = live.ongoing.filter((o) => o.cause_class === 'avarie').length;
+  const programate = live.ongoing.filter((o) => o.cause_class === 'programat').length;
   const verb = n === 1 ? 'era anunțată' : 'erau anunțate';
   let detail = '';
-  if (avarii === 0) {
-    detail = n === 1 ? ' (oprire programată)' : ', toate opriri programate';
+  if (n === 1) {
+    detail =
+      avarii === 1
+        ? ' (avarie)'
+        : programate === 1
+          ? ' (oprire programată)'
+          : ' (cauză neprecizată în anunț)';
   } else if (avarii === n) {
-    detail = n === 1 ? ' (avarie)' : ', toate din avarii';
+    detail = ', toate din avarii';
+  } else if (avarii === 0) {
+    // "unclassified" episodes are not planned works; only say so when they all are.
+    detail = programate === n ? ', toate opriri programate' : ', niciuna anunțată ca avarie';
   } else {
     detail = `, dintre care ${avarii} din avarii`;
   }
@@ -178,46 +197,91 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
           Este oprită apa caldă acum în Sectorul {sector}?
         </h2>
         {live.ongoing.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="mt-3 w-full border-collapse text-sm tnum">
-              <thead>
-                <tr className="hairline-b text-left text-xs text-ink-soft">
-                  <th scope="col" className="py-2 pr-3 font-normal">Punct termic</th>
-                  <th scope="col" className="py-2 pr-3 font-normal">Zona</th>
-                  <th scope="col" className="py-2 pr-3 font-normal">Cauză</th>
-                  <th scope="col" className="py-2 pr-3 font-normal">Început</th>
-                  <th scope="col" className="py-2 font-normal">Restabilire estimată</th>
-                </tr>
-              </thead>
-              <tbody>
-                {live.ongoing.map((o) => (
-                  <tr key={`${o.slug}|${o.start}`} className="hairline-b align-baseline">
-                    <td className="py-2 pr-3 font-sans">
-                      <Link href={`/punct-termic/${o.slug}`} className="hover:underline">
-                        {o.name}
-                      </Link>
-                    </td>
-                    <td className="py-2 pr-3 font-sans">
-                      {o.streets.length > 0 ? o.streets.join(', ') : '—'}
-                    </td>
-                    <td
-                      className={`py-2 pr-3 ${o.cause_class === 'avarie' ? 'text-avarie' : o.cause_class === 'programat' ? 'text-programat' : 'text-ink-soft'}`}
-                    >
-                      {o.cause_class === 'avarie'
-                        ? 'avarie'
-                        : o.cause_class === 'programat'
-                          ? 'programat'
-                          : 'neclasificat'}
-                    </td>
-                    <td className="py-2 pr-3 whitespace-nowrap">{fmtDateTimeRo(o.start)}</td>
-                    <td className="py-2 whitespace-nowrap">
-                      {o.remediere_last !== null ? fmtDateTimeRo(o.remediere_last) : '—'}
-                    </td>
+          <>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed">
+              La {fmtDateRo(meta.data_through)}: {fmtIntreruperi(live.ongoing.length)} în curs
+              {live.groups.length < live.ongoing.length
+                ? `, grupate pe ${live.groups.length === 1 ? 'un singur anunț' : `${live.groups.length} anunțuri`} Termoenergetica (aceeași cauză, același început și același termen de restabilire; o oprire care afectează zeci de puncte termice deodată apare pe un singur rând)`
+                : ''}
+              . Avariile sunt primele.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="mt-3 w-full border-collapse text-sm tnum">
+                <thead>
+                  <tr className="hairline-b text-left text-xs text-ink-soft">
+                    <th scope="col" className="py-2 pr-3 font-normal">Cauză</th>
+                    <th scope="col" className="py-2 pr-3 font-normal">Început</th>
+                    <th scope="col" className="py-2 pr-3 font-normal">Restabilire estimată</th>
+                    <th scope="col" className="py-2 font-normal">Puncte termice afectate</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {live.groups.map((g) => {
+                    const shown = g.pts.slice(0, PTS_SHOWN);
+                    const rest = g.pts.slice(PTS_SHOWN);
+                    return (
+                      <tr key={`${g.cause_class}|${g.start}|${g.remediere_last ?? ''}`} className="hairline-b align-baseline">
+                        <td
+                          className={`py-2 pr-3 whitespace-nowrap ${g.cause_class === 'avarie' ? 'text-avarie' : g.cause_class === 'programat' ? 'text-programat' : 'text-ink-soft'}`}
+                        >
+                          {g.cause_class === 'avarie'
+                            ? 'avarie'
+                            : g.cause_class === 'programat'
+                              ? 'programat'
+                              : 'neclasificat'}
+                        </td>
+                        <td className="py-2 pr-3 whitespace-nowrap">{fmtDateTimeRo(g.start)}</td>
+                        <td className="py-2 pr-3 whitespace-nowrap">
+                          {g.remediere_last !== null ? fmtDateTimeRo(g.remediere_last) : '—'}
+                        </td>
+                        <td className="min-w-[14rem] py-2 font-sans">
+                          {g.pts.length === 1 ? (
+                            <>
+                              <Link href={`/punct-termic/${g.pts[0].slug}`} className="hover:underline">
+                                {g.pts[0].name}
+                              </Link>
+                              {g.pts[0].streets.length > 0 ? (
+                                <span className="text-ink-soft"> ({g.pts[0].streets.join(', ')})</span>
+                              ) : null}
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-ink-soft">{fmtPuncteTermice(g.pts.length)}: </span>
+                              {shown.map((p, i) => (
+                                <span key={p.slug}>
+                                  <Link href={`/punct-termic/${p.slug}`} className="hover:underline">
+                                    {p.name}
+                                  </Link>
+                                  {i < shown.length - 1 || rest.length > 0 ? ', ' : ''}
+                                </span>
+                              ))}
+                              {rest.length > 0 ? (
+                                <details className="mt-1">
+                                  <summary className="cursor-pointer text-xs text-ink-soft">
+                                    și încă {fmtPuncteTermice(rest.length)} — vezi lista
+                                  </summary>
+                                  <p className="mt-1 leading-relaxed">
+                                    {rest.map((p, i) => (
+                                      <span key={p.slug}>
+                                        <Link href={`/punct-termic/${p.slug}`} className="hover:underline">
+                                          {p.name}
+                                        </Link>
+                                        {i < rest.length - 1 ? ', ' : ''}
+                                      </span>
+                                    ))}
+                                  </p>
+                                </details>
+                              ) : null}
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : (
           <p className="mt-3 max-w-2xl text-sm leading-relaxed">
             Nicio întrerupere în curs anunțată pentru Sectorul {sector} la{' '}

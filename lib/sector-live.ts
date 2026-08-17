@@ -17,9 +17,25 @@ export interface OngoingRow {
   remediere_last: string | null;
 }
 
+/**
+ * One Termoenergetica announcement: the ongoing episodes that share cause,
+ * start and estimated restore time. A city-wide planned shutdown flags dozens
+ * of thermal points in one sector at once (90 in Sector 6 on 2026-08-17);
+ * grouped, that is one line instead of ninety.
+ */
+export interface OngoingGroup {
+  cause_class: Episode['cause_class'];
+  start: string;
+  remediere_last: string | null;
+  /** Affected thermal points, sorted by name (numeric-aware, ro locale). */
+  pts: { slug: string; name: string; streets: string[] }[];
+}
+
 export interface SectorLive {
   /** Episodes still marked ongoing, avarie first, newest start first. */
   ongoing: OngoingRow[];
+  /** `ongoing` collapsed per announcement, same order (avarie first, newest first). */
+  groups: OngoingGroup[];
   /** Distinct PTs in the sector with any episode overlapping the last 30 days. */
   ptsHit30d: number;
   /** Total PTs in the sector (same universe the scan runs over). */
@@ -37,6 +53,29 @@ function parseLocalIso(iso: string): number | null {
 }
 
 const DAY_MS = 86_400_000;
+
+const nameCollator = new Intl.Collator('ro', { numeric: true, sensitivity: 'base' });
+
+/**
+ * Collapse ongoing rows into one group per (cause, start, restore) announcement.
+ * Group order follows the first row seen for that key, so an avarie-first /
+ * newest-first input keeps that order; PTs inside a group sort by name.
+ */
+export function groupOngoing(rows: OngoingRow[]): OngoingGroup[] {
+  const byKey = new Map<string, OngoingGroup>();
+  for (const r of rows) {
+    const key = `${r.cause_class}|${r.start}|${r.remediere_last ?? ''}`;
+    let g = byKey.get(key);
+    if (g === undefined) {
+      g = { cause_class: r.cause_class, start: r.start, remediere_last: r.remediere_last, pts: [] };
+      byKey.set(key, g);
+    }
+    g.pts.push({ slug: r.slug, name: r.name, streets: r.streets });
+  }
+  const groups = [...byKey.values()];
+  for (const g of groups) g.pts.sort((a, b) => nameCollator.compare(a.name, b.name));
+  return groups;
+}
 
 export function getSectorLive(sector: number, avarieYear: number): SectorLive {
   const meta = getMeta();
@@ -111,5 +150,11 @@ export function getSectorLive(sector: number, avarieYear: number): SectorLive {
         : (avarieDurations[mid - 1] + avarieDurations[mid]) / 2;
   }
 
-  return { ongoing, ptsHit30d: hit30d.size, ptsTotal, medianAvarieHours };
+  return {
+    ongoing,
+    groups: groupOngoing(ongoing),
+    ptsHit30d: hit30d.size,
+    ptsTotal,
+    medianAvarieHours,
+  };
 }

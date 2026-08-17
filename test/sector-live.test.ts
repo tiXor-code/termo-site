@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getSectorLive } from '@/lib/sector-live';
+import { getSectorLive, groupOngoing, type OngoingRow } from '@/lib/sector-live';
 
 // Fixture bundle: data_through 2025-06-10.
 // Sector 3 = pt-modul-alfa (ongoing programat since 2024-10-26, avarie
@@ -49,5 +49,73 @@ describe('lib/sector-live', () => {
     expect(live.ongoing).toEqual([]);
     expect(live.ptsHit30d).toBe(0);
     expect(live.medianAvarieHours).toBeNull();
+  });
+
+  it('groups mirror the flat list on the fixture (one announcement, one PT)', () => {
+    const live = getSectorLive(3, 2024);
+    expect(live.groups).toHaveLength(1);
+    expect(live.groups[0]).toEqual({
+      cause_class: 'programat',
+      start: '2024-10-26T06:00',
+      remediere_last: null,
+      pts: [{ slug: 'pt-modul-alfa', name: 'Modul Alfa', streets: ['Str Alfa'] }],
+    });
+    expect(getSectorLive(4, 2024).groups).toEqual([]);
+  });
+});
+
+describe('lib/sector-live groupOngoing', () => {
+  const row = (over: Partial<OngoingRow>): OngoingRow => ({
+    slug: 'pt-x',
+    name: 'X',
+    streets: [],
+    cause_class: 'programat',
+    start: '2026-08-16T22:30',
+    remediere_last: '2026-08-17T12:00',
+    ...over,
+  });
+
+  it('collapses rows announced together into one group, in first-seen order', () => {
+    // Input already avarie-first / newest-first, as getSectorLive emits it.
+    const rows = [
+      row({ slug: 'pt-a', name: '3 Placare-T', cause_class: 'avarie', start: '2026-08-16T11:24', remediere_last: '2026-08-17T15:30', streets: ['Str Unu'] }),
+      row({ slug: 'pt-b', name: '10 Catelu' }),
+      row({ slug: 'pt-c', name: '2 Catelu' }),
+      row({ slug: 'pt-d', name: 'U1', start: '2026-08-14T21:03', remediere_last: '2026-08-22T23:00' }),
+      row({ slug: 'pt-e', name: '1 Catelu' }),
+    ];
+    const groups = groupOngoing(rows);
+    expect(groups.map((g) => [g.cause_class, g.start, g.remediere_last, g.pts.length])).toEqual([
+      ['avarie', '2026-08-16T11:24', '2026-08-17T15:30', 1],
+      ['programat', '2026-08-16T22:30', '2026-08-17T12:00', 3],
+      ['programat', '2026-08-14T21:03', '2026-08-22T23:00', 1],
+    ]);
+    // Every input row lands in exactly one group.
+    expect(groups.reduce((n, g) => n + g.pts.length, 0)).toBe(rows.length);
+    expect(groups[0].pts[0].streets).toEqual(['Str Unu']);
+  });
+
+  it('sorts thermal points inside a group by name, numeric-aware', () => {
+    const groups = groupOngoing([
+      row({ slug: 'pt-b', name: '10 Catelu' }),
+      row({ slug: 'pt-c', name: '2 Catelu' }),
+      row({ slug: 'pt-e', name: '1 Catelu' }),
+    ]);
+    expect(groups[0].pts.map((p) => p.name)).toEqual(['1 Catelu', '2 Catelu', '10 Catelu']);
+  });
+
+  it('a missing restore estimate is its own key, not merged with a dated one', () => {
+    const groups = groupOngoing([
+      row({ slug: 'pt-a', name: 'A', remediere_last: null }),
+      row({ slug: 'pt-b', name: 'B' }),
+      row({ slug: 'pt-c', name: 'C', remediere_last: null }),
+    ]);
+    expect(groups).toHaveLength(2);
+    expect(groups[0].remediere_last).toBeNull();
+    expect(groups[0].pts.map((p) => p.slug)).toEqual(['pt-a', 'pt-c']);
+  });
+
+  it('empty input yields no groups', () => {
+    expect(groupOngoing([])).toEqual([]);
   });
 });
