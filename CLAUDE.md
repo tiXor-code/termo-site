@@ -58,7 +58,12 @@ established idiom under the comment `Deploy-order safety`.
 - Romanian copy, proper diacritics.
 - Rendered HTML splits text around interpolated values with `<!-- -->`. Assertions on
   rendered output must not span an interpolation boundary.
-- JSON-LD goes through `JsonLd` in `lib/seo.ts`, which must escape `<` as `<`. Entity
-  names come from scraped announcements and are untrusted input — never hand-build a
-  `<script type="application/ld+json">` payload around them.
+- **All JSON-LD must go through `JsonLd` in `lib/seo.ts`.** It writes into
+  `dangerouslySetInnerHTML`, so it escapes `<` as `\u003c` before
+  emitting. That escaping is load-bearing, not cosmetic: PT and street names come from
+  scraped CMTEB announcements and are untrusted input, and they reach JSON-LD via
+  `breadcrumbJsonLd` (see `app/strada/[slug]/page.tsx`). Without it, a name containing
+  `</script>` closes the tag early and injects markup. Never hand-build a
+  `<script type="application/ld+json">` payload around scraped text, and never remove
+  the `.replace()` in `JsonLd`.
 - `.claude/artifacts/` holds local screenshot output and stays out of git.
