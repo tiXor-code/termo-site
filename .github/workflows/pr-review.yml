@@ -43,14 +43,14 @@ jobs:
         run: gh label create needs-human --repo "${{ github.repository }}" --color b60205 --description "Autonomous review loop needs a human" --force || true
 
       - name: Checkout PR head
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
       - name: Review
         if: env.CLAUDE_CODE_OAUTH_TOKEN != ''
-        uses: anthropics/claude-code-action@v1
+        uses: anthropics/claude-code-action@be7b93b1907a4abad570368f3c74b6fe3807510b  # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # A re-review runs after @claude pushes a fix, so the actor may be a bot.
