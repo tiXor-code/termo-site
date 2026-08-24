@@ -8,10 +8,12 @@ import {
   getMeta,
   getPtRanking,
   getSectoareRanking,
+  getStraziRanking,
   getYearSummary,
   lastCompleteYear,
 } from '@/lib/data';
 import { fmtDateRo, fmtDateTimeRo, fmtDec, fmtInt, fmtZile, yearLabel } from '@/lib/format';
+import { sectorsLabel } from '@/lib/rankings';
 import { getSectorLive, type SectorLive } from '@/lib/sector-live';
 import { faqJsonLd, JsonLd } from '@/lib/seo';
 
@@ -40,6 +42,42 @@ function fmtPuncteTermice(n: number): string {
 
 /** Names shown inline per announcement before the rest folds into <details>. */
 const PTS_SHOWN = 6;
+
+/** Streets listed in the per-sector table before linking the full ranking. */
+const STREETS_SHOWN = 10;
+
+/**
+ * Termoenergetica dispatch numbers per sector, as published on
+ * cmteb.ro/contact.php (checked 2026-08-24). All dispecerate answer non-stop.
+ * 031.9442 = automated per-sector status line; 0800.820.002 = free TELVERDE
+ * line for complaints. Re-check the source page when touching these.
+ */
+const DISPECERATE: Record<number, { zona: string | null; tel: string }[]> = {
+  1: [{ zona: null, tel: '031.434.0458' }],
+  2: [
+    { zona: 'Colentina', tel: '031.410.9021' },
+    { zona: 'Pantelimon', tel: '031.430.1692' },
+  ],
+  3: [
+    { zona: 'Vitan', tel: '0775.541.175' },
+    { zona: 'Titan', tel: '0775.541.162' },
+  ],
+  4: [
+    { zona: 'Berceni', tel: '031.431.3339' },
+    { zona: 'Giurgiu', tel: '031.426.0430' },
+  ],
+  5: [{ zona: null, tel: '031.436.9093' }],
+  6: [
+    { zona: 'Militari', tel: '031.436.9674' },
+    { zona: 'Drumul Taberei', tel: '031.434.0448' },
+  ],
+};
+
+/** "031.434.0458" / "0775.541.175 (zona Vitan) și 0775.541.162 (zona Titan)". */
+function dispeceratPhrase(sector: number): string {
+  const lines = DISPECERATE[sector] ?? [];
+  return lines.map((d) => (d.zona !== null ? `${d.tel} (zona ${d.zona})` : d.tel)).join(' și ');
+}
 
 /** Median avarie duration for prose: "sub o oră" / "9 ore" / "2,5 zile". */
 function fmtDurata(hours: number): string {
@@ -88,11 +126,11 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const lcy = lastCompleteYear();
-  const row = getSectoareRanking(lcy).find((r) => r.sector === Number(id));
+  const meta = getMeta();
+  const firstYear = meta.years[0];
   return {
-    title: `Apă caldă în Sectorul ${id} — avarii azi și istoric`,
-    description: `Avariile de apă caldă în curs în Sectorul ${id}, actualizate zilnic din anunțurile Termoenergetica, și istoricul complet: mediana de ${row ? fmtZile(row.median_days) : '?'} fără apă caldă în ${lcy}.`,
+    title: `Apă caldă Sectorul ${id} — avarii în curs acum`,
+    description: `Avariile de apă caldă în curs acum în Sectorul ${id}, cu punctele termice și străzile afectate, numărul de dispecerat non-stop și istoricul complet din ${firstYear}.`,
     alternates: { canonical: `/sector/${id}` },
   };
 }
@@ -127,6 +165,12 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
     .filter((r) => r.sector === sector)
     .slice(0, 20);
 
+  const topStreets = getStraziRanking(lcy)
+    .filter((r) => r.sectors.includes(sector))
+    .slice(0, STREETS_SHOWN);
+
+  const dispecerat = dispeceratPhrase(sector);
+
   const crumbs = [
     { name: 'Acasă', href: '/' },
     { name: 'Sectoare', href: '/clasament/sectoare' },
@@ -140,9 +184,17 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
   // text exactly; links live outside the answers.
   const faq: { question: string; answer: string }[] = [
     {
+      question: `Ce avarii de apă caldă sunt în curs acum în Sectorul ${sector}?`,
+      answer:
+        `${status} Situația detaliată, cu punctele termice și străzile afectate, separate în ` +
+        `avarii și opriri programate, e mai sus pe această pagină. Datele se actualizează o dată ` +
+        `pe noapte; pentru anunțurile din ultimele ore, verifică cmteb.ro sau sună la linia ` +
+        `automată 031.9442.`,
+    },
+    {
       question: `De ce nu am apă caldă în Sectorul ${sector}?`,
       answer:
-        `${status} Apa caldă vine de la punctul termic care deservește blocul, așa că o avarie ` +
+        `Apa caldă vine de la punctul termic care deservește blocul, așa că o avarie ` +
         `locală îți poate opri apa chiar dacă restul sectorului nu e afectat. Caută strada ta pe ` +
         `site ca să vezi punctul termic care o deservește și istoricul lui complet.`,
     },
@@ -175,6 +227,18 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
           },
         ]
       : []),
+    ...(dispecerat !== ''
+      ? [
+          {
+            question: `Unde suni dacă nu ai apă caldă în Sectorul ${sector}?`,
+            answer:
+              `Dispeceratul Termoenergetica pentru Sectorul ${sector} răspunde non-stop la ` +
+              `${dispecerat}. Mesaj automat cu starea sistemului pe sectoare: 031.9442. ` +
+              `Sesizări și reclamații cu apel gratuit: 0800.820.002 (TELVERDE). Numerele sunt ` +
+              `cele publicate de Termoenergetica pe pagina de contact cmteb.ro.`,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -189,7 +253,8 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
         {status} În ultimele 30 de zile, {fmtInt(live.ptsHit30d)} din {fmtInt(live.ptsTotal)}{' '}
         puncte termice din sector au avut cel puțin o întrerupere, iar în {lcy} punctul termic
         median din Sectorul {sector} a stat {fmtZile(row.median_days)} fără apă caldă. Mai
-        jos: situația de acum, cele mai afectate zone și evoluția pe ani.
+        jos: avariile deschise acum, numerele de dispecerat, străzile și punctele termice cele
+        mai afectate și evoluția pe ani.
       </p>
 
       <section className="mt-10">
@@ -281,6 +346,13 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
                 </tbody>
               </table>
             </div>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed">
+              Blocul tău nu apare în tabel?{' '}
+              <Link href="/cauta" className="underline">
+                Caută strada ta
+              </Link>{' '}
+              ca să vezi punctul termic care o deservește și istoricul lui complet.
+            </p>
           </>
         ) : (
           <p className="mt-3 max-w-2xl text-sm leading-relaxed">
@@ -296,6 +368,13 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
             .
           </p>
         )}
+        {dispecerat !== '' ? (
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed">
+            Dispecerat Termoenergetica pentru Sectorul {sector}, non-stop: {dispecerat}. Mesaj
+            automat cu starea pe sectoare: 031.9442; sesizări cu apel gratuit: 0800.820.002
+            (TELVERDE).
+          </p>
+        ) : null}
         <p className="mt-3 text-xs text-ink-soft">
           Actualizat o dată pe noapte din anunțurile publice Termoenergetica. O avarie apărută
           azi poate intra pe listă abia la următoarea actualizare.
@@ -368,6 +447,51 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
           </Link>
         </p>
       </section>
+
+      {topStreets.length > 0 ? (
+        <section className="mt-12">
+          <h2 className="hairline-b pb-2 font-display text-xl font-bold">
+            Care străzi din Sectorul {sector} au stat cel mai mult fără apă caldă?
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed">
+            Străzile din Sectorul {sector} cu cele mai multe zile cu întreruperi de apă caldă în{' '}
+            {yearLabel(lcy, meta)}. Zilele sunt numărate pe toată strada; o stradă care trece
+            prin mai multe sectoare apare cu totalul întreg.
+          </p>
+          <table className="mt-3 w-full border-collapse text-sm tnum">
+            <thead>
+              <tr className="hairline-b text-left text-xs text-ink-soft">
+                <th scope="col" className="py-2 pr-3 font-normal">Loc</th>
+                <th scope="col" className="py-2 pr-3 font-normal">Stradă</th>
+                <th scope="col" className="py-2 pr-3 text-right font-normal">Zile fără apă caldă</th>
+                <th scope="col" className="py-2 text-right font-normal">din care avarii</th>
+              </tr>
+            </thead>
+            <tbody>
+              {topStreets.map((r, i) => (
+                <tr key={r.slug} className="hairline-b">
+                  <td className="py-2 pr-3 text-ink-soft">{i + 1}</td>
+                  <td className="py-2 pr-3 font-sans">
+                    <Link href={`/strada/${r.slug}`} className="hover:underline">
+                      {r.name}
+                    </Link>
+                    {r.sectors.length > 1 ? (
+                      <span className="text-ink-soft"> (Sectoarele {sectorsLabel(r.sectors)})</span>
+                    ) : null}
+                  </td>
+                  <td className="py-2 pr-3 text-right">{fmtInt(r.days)}</td>
+                  <td className="py-2 text-right">{fmtInt(r.days_avarie)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-4 text-sm">
+            <Link href={`/clasament/strazi/${lcy}`} className="underline">
+              Clasamentul complet al străzilor — {lcy}
+            </Link>
+          </p>
+        </section>
+      ) : null}
 
       <section className="mt-12">
         <h2 className="hairline-b pb-2 font-display text-xl font-bold">Întrebări frecvente</h2>
