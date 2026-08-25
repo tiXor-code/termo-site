@@ -11,7 +11,15 @@ import {
   getYearSummary,
   lastCompleteYear,
 } from '@/lib/data';
-import { fmtDateRo, fmtDateTimeRo, fmtDec, fmtInt, fmtZile, yearLabel } from '@/lib/format';
+import {
+  deFor,
+  fmtDateRo,
+  fmtDateTimeRo,
+  fmtDec,
+  fmtInt,
+  fmtZile,
+  yearLabel,
+} from '@/lib/format';
 import { getSectorLive, type SectorLive } from '@/lib/sector-live';
 import { faqJsonLd, JsonLd } from '@/lib/seo';
 
@@ -34,7 +42,7 @@ function fmtIntreruperi(n: number): string {
 /** "un punct termic" / "3 puncte termice" / "56 de puncte termice". */
 function fmtPuncteTermice(n: number): string {
   if (n === 1) return 'un punct termic';
-  if (n >= 20) return `${fmtInt(n)} de puncte termice`;
+  if (deFor(n)) return `${fmtInt(n)} de puncte termice`;
   return `${n} puncte termice`;
 }
 
@@ -129,10 +137,6 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
   // universe the table below already renders.
   const sectorHeadlineDays = sectorPts.reduce((a, r) => a + r.days, 0);
   const sectorDeficientaDays = sectorPts.reduce((a, r) => a + r.days_deficienta, 0);
-  const sectorDeficientaPct =
-    sectorHeadlineDays > 0
-      ? Math.round((sectorDeficientaDays / sectorHeadlineDays) * 100)
-      : 0;
   const ptsWorseDeficienta = sectorPts.filter((r) => r.days_deficienta > r.days).length;
 
   const crumbs = [
@@ -154,10 +158,9 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
         `temperatură scăzută, adică apă călduță sau care abia curge. Indicatorul principal al ` +
         `site-ului numără doar zilele de oprire. În ${lcy}, punctele termice din Sectorul ${sector} ` +
         `au adunat ${fmtZile(sectorHeadlineDays)} de oprire și, pe lângă ele, ` +
-        `${fmtZile(sectorDeficientaDays)} cu presiune sau temperatură scăzută — cu ` +
-        `${sectorDeficientaPct}% mai mult decât ce se vede în cifrele de mai sus, numărate separat. ` +
-        `La ${ptsWorseDeficienta} din cele ${fmtInt(sectorPts.length)} de puncte termice ale ` +
-        `sectorului, zilele cu deficiențe au fost mai multe decât zilele de oprire.`,
+        `${fmtZile(sectorDeficientaDays)} cu presiune sau temperatură scăzută, numărate separat. ` +
+        `La ${ptsWorseDeficienta} din cele ${fmtInt(sectorPts.length)} ${deFor(sectorPts.length)}puncte termice ale ` +
+        `sectorului clasate în ${lcy}, zilele cu deficiențe au fost mai multe decât zilele de oprire.`,
     },
     {
       question: `De ce nu am apă caldă în Sectorul ${sector}?`,
@@ -411,8 +414,8 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
         </p>
         <p className="mt-3">
           Zile cu presiune sau temperatură scăzută, cumulat pe punctele termice ale sectorului
-          în {lcy}: {fmtInt(sectorDeficientaDays)}, față de {fmtInt(sectorHeadlineDays)} zile de
-          oprire. Se numără separat și nu intră în cifrele de mai sus.{' '}
+          clasate în {lcy}: {fmtInt(sectorDeficientaDays)}, față de {fmtZile(sectorHeadlineDays)}{' '}
+          de oprire. Se numără separat și nu intră în cifrele de mai sus.{' '}
           <Link href="/metodologie#deficiente" className="underline">
             Cum le numărăm.
           </Link>

@@ -173,7 +173,7 @@ export default async function PunctTermicPage({
                 {fmtZile(data.days)} fără apă caldă · {fmtInt(data.episodes_count)} episoade · cel
                 mai lung: {fmtZile(data.longest_days)}
                 {data.days_deficienta > 0 && (
-                  <> · {fmtInt(data.days_deficienta)} zile cu deficiențe</>
+                  <> · {fmtZile(data.days_deficienta)} cu deficiențe</>
                 )}
               </p>
             )}

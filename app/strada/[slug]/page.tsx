@@ -111,7 +111,7 @@ function PtHistory({
               <span className="font-display text-lg font-bold tnum">{year}</span>
               <span className="tnum text-sm text-ink-soft">
                 {days > 0 ? fmtZile(days) : 'fără opriri'}
-                {def > 0 ? ` · ${fmtInt(def)} zile cu deficiențe` : ''}
+                {def > 0 ? ` · ${fmtZile(def)} cu deficiențe` : ''}
               </span>
             </div>
             <div className="mt-2">

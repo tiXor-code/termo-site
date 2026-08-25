@@ -65,7 +65,7 @@ export default function VerdictBand({
       </div>
       <div>
         <span className="label v-pill">{label}</span>
-        {def > 0 && <span className="v-flag tnum">+{fmtInt(def)} zile cu deficiențe</span>}
+        {def > 0 && <span className="v-flag tnum">+{fmtZile(def)} cu deficiențe</span>}
         <h2>{headline}</h2>
         {def > 0 && (
           <p className="v-def">

@@ -9,13 +9,14 @@ import {
   clientAsset,
   getCitySummary,
   getMeta,
+  getPtAll,
   getPtRanking,
   getSectoareRanking,
   getStraziRanking,
   getYearSummary,
   lastCompleteYear,
 } from '@/lib/data';
-import { fmtDateRo, fmtDec, fmtInt } from '@/lib/format';
+import { fmtDateRo, fmtDec, fmtInt, fmtZile } from '@/lib/format';
 
 export const dynamic = 'error';
 
@@ -40,7 +41,15 @@ export default function HomePage() {
   const ptRanking = getPtRanking(lcy);
   const topPt = ptRanking.slice(0, 10);
   const cityHeadlineDays = ptRanking.reduce((a, r) => a + r.days, 0);
-  const cityDeficientaDays = ptRanking.reduce((a, r) => a + r.days_deficienta, 0);
+  // `days` summed over the ranking already equals the universe total (a PT with
+  // zero outage days contributes 0 and is simply absent from the ranking), but
+  // DEFICIENTA does not: the zero-outage PTs are dropped from the ranking while
+  // still carrying deficiency days - 39 of them in 2025, 273 in 2026. Sum that
+  // half over the full universe so the sentence below is literally true.
+  const cityDeficientaDays = [...getPtAll().values()].reduce(
+    (a, pt) => a + (pt.years[String(lcy)]?.days_deficienta ?? 0),
+    0,
+  );
   const topStrazi = getStraziRanking(lcy).slice(0, 10);
   const teaserStrazi = topStrazi.slice(0, 5);
   const teaserMax = teaserStrazi.length > 0 ? teaserStrazi[0].days : 0;
@@ -106,9 +115,9 @@ export default function HomePage() {
 
         <p className="mt-4 max-w-2xl text-sm text-ink-soft" data-nosnippet="">
           Cifrele de mai sus numără doar zilele de <b>oprire</b> a apei calde. În {lcy},
-          punctele termice din București au adunat {fmtInt(cityHeadlineDays)} de zile de oprire
+          punctele termice din București au adunat {fmtZile(cityHeadlineDays)} de oprire
           (punct termic × zi) și, pe lângă ele, încă{' '}
-          <b>{fmtInt(cityDeficientaDays)} de zile cu presiune sau temperatură scăzută</b> —
+          <b>{fmtZile(cityDeficientaDays)} cu presiune sau temperatură scăzută</b> —
           numărate separat, pentru că nu sunt opriri.{' '}
           <Link href="/metodologie#deficiente" className="underline">
             Cât de mare e ce nu numărăm.

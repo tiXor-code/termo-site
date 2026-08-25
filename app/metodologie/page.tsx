@@ -7,8 +7,9 @@ import {
   getPtRanking,
   lastCompleteYear,
   type PtYear,
+  type Run,
 } from '@/lib/data';
-import { fmtDateRo, fmtDec, fmtInt, yearLabel } from '@/lib/format';
+import { deFor, fmtDateRo, fmtDec, fmtInt, fmtZile, yearLabel } from '@/lib/format';
 import { JsonLd, datasetJsonLd } from '@/lib/seo';
 import { DEFICIENTA_GUARD_DAYS } from '@/lib/verdict';
 
@@ -28,10 +29,17 @@ export default function MetodologiePage() {
 
   // Every number below is computed at build from the same bundle the ranking
   // pages already load, so the published magnitude can never go stale.
+  const allPts = [...getPtAll().values()];
   const deficientaByYear = meta.years.map((y) => {
     const rows = getPtRanking(y);
+    // headline is identical either way (a zero-outage PT contributes 0 and is
+    // absent from the ranking); deficienta is NOT - those same PTs still carry
+    // deficiency days, so that half must be summed over the full universe.
     const headline = rows.reduce((a, r) => a + r.days, 0);
-    const deficienta = rows.reduce((a, r) => a + r.days_deficienta, 0);
+    const deficienta = allPts.reduce(
+      (a, pt) => a + (pt.years[String(y)]?.days_deficienta ?? 0),
+      0,
+    );
     return {
       year: y,
       headline,
@@ -48,10 +56,33 @@ export default function MetodologiePage() {
   ).length;
   // Zero-outage PTs are dropped from the rankings entirely, so they are only
   // reachable through the entity file.
-  const invisible = [...getPtAll().values()]
+  const invisible = allPts
     .map((pt) => pt.years[String(lcy)])
     .filter((y): y is PtYear => y !== undefined && y.days === 0 && y.days_deficienta > 0);
   const invisibleDays = invisible.reduce((a, y) => a + y.days_deficienta, 0);
+
+  // Share of deficiency days that fall on a day with NO outage. Computed, not
+  // asserted: this sits under a sentence promising the section is recalculated
+  // on every data refresh, and the true value drifts year to year (84-93%).
+  const dayset = (runs: Run[], classes: readonly string[]) => {
+    const out = new Set<number>();
+    for (const [start, len, cause] of runs) {
+      if (classes.includes(cause)) for (let i = 0; i < len; i++) out.add(start + i);
+    }
+    return out;
+  };
+  let defTotal = 0;
+  let defOverlap = 0;
+  for (const pt of getPtAll().values()) {
+    for (const y of Object.values(pt.years)) {
+      const d = dayset(y.runs, ['deficienta']);
+      if (d.size === 0) continue;
+      const h = dayset(y.runs, ['avarie', 'programat', 'unclassified']);
+      defTotal += d.size;
+      for (const doy of d) if (h.has(doy)) defOverlap += 1;
+    }
+  }
+  const netNewPct = defTotal > 0 ? (100 * (defTotal - defOverlap)) / defTotal : 0;
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
@@ -161,11 +192,11 @@ export default function MetodologiePage() {
           </p>
           <p>
             În {lcy}, punctele termice din București au adunat{' '}
-            <b>{fmtInt(lcyRow?.headline ?? 0)} de zile de oprire</b> (punct termic × zi) și, pe
-            lângă ele, <b>{fmtInt(lcyRow?.deficienta ?? 0)} de zile cu presiune sau temperatură
-            scăzută</b> — cu {lcyRow?.pct ?? 0}% mai mult decât ce intră în clasamente.
-            Aproximativ 85% dintre zilele cu deficiențe cad în zile în care apa <i>nu</i> era
-            oprită: sunt zile în plus, nu aceleași zile numărate de două ori.
+            <b>{fmtZile(lcyRow?.headline ?? 0)} de oprire</b> (punct termic × zi) și, pe
+            lângă ele, <b>{fmtZile(lcyRow?.deficienta ?? 0)} cu presiune sau temperatură
+            scăzută</b>, numărate separat. {fmtDec(netNewPct, 0)}% dintre zilele cu deficiențe cad
+            în zile în care apa <i>nu</i> era oprită: sunt zile în plus, nu aceleași zile numărate
+            de două ori.
           </p>
         </div>
 
@@ -191,13 +222,14 @@ export default function MetodologiePage() {
           </tbody>
         </table>
         <p className="mt-2 text-xs text-ink-soft">
-          Zile cumulate punct termic × zi, pe toate punctele termice din clasamentul anului.
+          Zile cumulate punct termic × zi, pe toate punctele termice din București — inclusiv
+          cele care nu apar în clasamentul anului pentru că nu au avut nicio oprire.
         </p>
 
         <h3 className="mt-6 font-display text-lg font-bold">Pe cine ascunde</h3>
         <ul className="mt-3 max-w-2xl list-disc space-y-2 pl-5 leading-relaxed">
           <li>
-            <b>{fmtInt(worseThanOutage)}</b> din cele {fmtInt(lcyRows.length)} de puncte termice
+            <b>{fmtInt(worseThanOutage)}</b> din cele {fmtInt(lcyRows.length)} {deFor(lcyRows.length)}puncte termice
             clasate în {lcy} ({fmtDec(worsePct)}%) au avut mai multe zile cu deficiențe decât zile
             de oprire.
           </li>
@@ -210,7 +242,7 @@ export default function MetodologiePage() {
           </li>
           <li>
             <b>{fmtInt(invisible.length)}</b> puncte termice au avut zero zile de oprire în {lcy},
-            dar {fmtInt(invisibleDays)} de zile cu deficiențe. Cum clasamentele se construiesc pe
+            dar {fmtZile(invisibleDays)} cu deficiențe. Cum clasamentele se construiesc pe
             zilele de oprire, ele lipsesc complet din clasamente și apar „curate" pe hartă.
           </li>
         </ul>
@@ -339,12 +371,13 @@ export default function MetodologiePage() {
             (date până la {fmtDateRo(meta.data_through)}).
           </li>
           <li>
-            August 2026 — deficiențele (presiune sau temperatură scăzută) sunt acum afișate peste
-            tot unde apare indicatorul principal, cu mărimea lor publicată mai sus. Indicatorul
-            principal nu s-a schimbat: numără în continuare doar zilele de oprire, iar toate
-            cifrele istorice au rămas identice. Singura schimbare de verdict: o zonă cu cel puțin{' '}
-            {DEFICIENTA_GUARD_DAYS} de zile cu deficiențe într-un an nu mai poate fi etichetată
-            „Curat".
+            August 2026 — deficiențele (presiune sau temperatură scăzută) sunt acum afișate pe
+            paginile de punct termic și de stradă, pe cele de sector, în clasamente și în
+            calendarul întreruperilor, cu mărimea lor publicată mai sus. Harta rămâne colorată
+            doar după zilele de oprire. Indicatorul principal nu s-a schimbat: numără în
+            continuare doar zilele de oprire, iar toate cifrele istorice au rămas identice.
+            Singura schimbare de verdict: o zonă cu cel puțin {DEFICIENTA_GUARD_DAYS} de zile cu
+            deficiențe într-un an nu mai poate fi etichetată „Curat".
           </li>
           <li>
             Iunie 2026 — prima versiune publică: episoade de oprire ACC, {summary.length} ani de
