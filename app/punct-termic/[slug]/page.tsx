@@ -92,6 +92,7 @@ export default async function PunctTermicPage({
       <VerdictBand
         scope="pt"
         days={lcyData.days}
+        daysDeficienta={lcyData.days_deficienta}
         year={lcy}
         name={pt.name}
         cityMedian={lcySummary.median_pt_days}
@@ -106,8 +107,20 @@ export default async function PunctTermicPage({
             caldă în {lcy}: {fmtInt(lcyData.days_avarie)} din avarii și{' '}
             {fmtInt(lcyData.days_programat)} din lucrări programate.
           </>
+        ) : lcyData.days_deficienta > 0 ? (
+          <>
+            Fără opriri de apă caldă înregistrate în {lcy} — dar{' '}
+            {fmtZile(lcyData.days_deficienta)} cu presiune sau temperatură scăzută.
+          </>
         ) : (
           <>Fără întreruperi înregistrate în {lcy}.</>
+        )}
+        {lcyData.days > 0 && lcyData.days_deficienta > 0 && (
+          <>
+            {' '}
+            În plus, {fmtZile(lcyData.days_deficienta)} cu presiune sau temperatură scăzută,
+            numărate separat.
+          </>
         )}
       </p>
 
@@ -120,7 +133,7 @@ export default async function PunctTermicPage({
             {
               value: fmtInt(lcyData.days_deficienta),
               label: 'zile cu deficiențe (presiune/temperatură) — numărate separat',
-              footnoteHref: '/metodologie#ce-numaram',
+              footnoteHref: '/metodologie#deficiente',
             },
             { value: `≈ ${fmtInt(Math.round(lcyData.est_hours))}`, label: 'ore estimate' },
             { value: fmtInt(lcyData.longest_days), label: 'cel mai lung episod (zile)' },
@@ -141,13 +154,22 @@ export default async function PunctTermicPage({
         return (
           <section key={year} className="mt-12 border-t border-hairline pt-6">
             <h2 className="font-display text-2xl font-bold">{yearLabel(year, meta)}</h2>
-            {data.days === 0 && (
+            {data.days === 0 && data.days_deficienta === 0 && (
               <p className="mt-2 text-sm text-ink-soft">Fără întreruperi înregistrate în {year}.</p>
+            )}
+            {data.days === 0 && data.days_deficienta > 0 && (
+              <p className="mt-2 text-sm text-ink-soft">
+                Fără opriri înregistrate în {year} — dar {fmtZile(data.days_deficienta)} cu
+                presiune sau temperatură scăzută.
+              </p>
             )}
             {data.days > 0 && (
               <p className="mt-2 text-sm text-ink-soft">
                 {fmtZile(data.days)} fără apă caldă · {fmtInt(data.episodes_count)} episoade · cel
                 mai lung: {fmtZile(data.longest_days)}
+                {data.days_deficienta > 0 && (
+                  <> · {fmtInt(data.days_deficienta)} zile cu deficiențe</>
+                )}
               </p>
             )}
             <div className="mt-4">

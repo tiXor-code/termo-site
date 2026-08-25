@@ -100,6 +100,15 @@ export interface PtYear {
   est_hours: number;
   runs: Run[];
   episodes: Episode[];
+  /**
+   * Deficiency episodes and their counters, additive since 2026-08-25. Disjoint
+   * from `episodes` / `episodes_count` / `est_hours`, which never include a
+   * deficiency episode. Optional purely as deploy-order safety: a build running
+   * against an older data-latest will not have them.
+   */
+  episodes_count_deficienta?: number;
+  est_hours_deficienta?: number;
+  episodes_deficienta?: Episode[];
 }
 
 export interface PtEntity {
@@ -119,6 +128,13 @@ export interface StreetYear {
   days: number;
   days_avarie: number;
   days_programat: number;
+  /**
+   * Additive since 2026-08-25; street-years previously shipped deficiency RUNS
+   * with no counter. Optional as deploy-order safety - a build against an older
+   * data-latest will not have it, and `fmtInt(undefined)` renders NaN across
+   * ~1,200 static pages. Read it as `?? 0`, never bare.
+   */
+  days_deficienta?: number;
   runs: Run[];
 }
 

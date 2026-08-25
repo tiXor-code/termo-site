@@ -23,7 +23,7 @@ import {
 } from '@/lib/data';
 import { fmtInt, fmtZile, yearLabel } from '@/lib/format';
 import { siteUrl } from '@/lib/seo';
-import { gradeFor } from '@/lib/verdict';
+import { verdictFor, type Verdict } from '@/lib/verdict';
 import { sectorsPhrase, streetDescription, streetTitle } from '@/lib/seo-meta';
 
 export const dynamic = 'error';
@@ -164,8 +164,9 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
     .map((ptSlug) => ptAll.get(ptSlug))
     .filter((pt): pt is PtEntity => pt !== undefined)
     .map((pt) => {
-      const days = pt.years[String(lcy)]?.days ?? 0;
-      return { pt, days, ...gradeFor(days) };
+      const yd = pt.years[String(lcy)];
+      const days = yd?.days ?? 0;
+      return { pt, days, ...verdictFor(days, yd?.days_deficienta ?? 0) };
     });
 
   // Deploy-order safety: the bundle's `blocks` field may be absent on an older
@@ -181,6 +182,7 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
     <>
       <VerdictBand
         days={s.days}
+        daysDeficienta={s.daysDeficienta}
         year={lcy}
         name={`PT ${s.pt.name}`}
         scope="block"
@@ -332,7 +334,9 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
   // -------------------------------------------------------------------------
   const inferredPt = street.inferred_pt ? ptAll.get(street.inferred_pt) : undefined;
   if (servingPts.length === 0 && inferredPt) {
-    const iDays = inferredPt.years[String(lcy)]?.days ?? 0;
+    const iYear = inferredPt.years[String(lcy)];
+    const iDays = iYear?.days ?? 0;
+    const iVerdict = verdictFor(iDays, iYear?.days_deficienta ?? 0);
     return (
       <main className="mx-auto max-w-3xl px-4 py-10">
         {head}
@@ -347,13 +351,14 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         </p>
         <VerdictBand
           days={iDays}
+          daysDeficienta={iVerdict.daysDeficienta}
           year={lcy}
           name={`PT ${inferredPt.name}`}
           scope="block"
           cityMedian={cityMedian}
           partial={lcyPartial}
         />
-        <RenterTip grade={gradeFor(iDays).key} />
+        <RenterTip grade={iVerdict.key} />
         <PtHistory
           pt={inferredPt}
           street={street.name}
@@ -402,6 +407,7 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         {addressNote}
         <VerdictBand
           days={repr.days}
+          daysDeficienta={repr.daysDeficienta}
           year={lcy}
           name={`PT ${repr.pt.name}`}
           scope="block"
@@ -468,7 +474,7 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
 }
 
 /** A serving PT row, narrowed to what the finder/list need. */
-type ServingPt = ReturnType<typeof gradeFor> & { pt: PtEntity; days: number };
+type ServingPt = Verdict & { pt: PtEntity; days: number };
 
 /** Pick a representative mid PT (median by days; lower-mid on ties). */
 function pickRepresentative(servingPts: ServingPt[]): ServingPt {
