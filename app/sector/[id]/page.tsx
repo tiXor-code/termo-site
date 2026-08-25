@@ -123,9 +123,17 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
     };
   });
 
-  const worstPts = getPtRanking(lcy)
-    .filter((r) => r.sector === sector)
-    .slice(0, 20);
+  const sectorPts = getPtRanking(lcy).filter((r) => r.sector === sector);
+  const worstPts = sectorPts.slice(0, 20);
+  // SectorRankingRow has no deficienta field, so roll it up from the same PT
+  // universe the table below already renders.
+  const sectorHeadlineDays = sectorPts.reduce((a, r) => a + r.days, 0);
+  const sectorDeficientaDays = sectorPts.reduce((a, r) => a + r.days_deficienta, 0);
+  const sectorDeficientaPct =
+    sectorHeadlineDays > 0
+      ? Math.round((sectorDeficientaDays / sectorHeadlineDays) * 100)
+      : 0;
+  const ptsWorseDeficienta = sectorPts.filter((r) => r.days_deficienta > r.days).length;
 
   const crumbs = [
     { name: 'Acasă', href: '/' },
@@ -139,6 +147,18 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
   // FAQ answers are plain strings so the FAQPage JSON-LD matches the visible
   // text exactly; links live outside the answers.
   const faq: { question: string; answer: string }[] = [
+    {
+      question: 'Ce înseamnă „deficiență" și de ce nu intră în total?',
+      answer:
+        `Termoenergetica anunță separat opririle de apă caldă și deficiențele — presiune sau ` +
+        `temperatură scăzută, adică apă călduță sau care abia curge. Indicatorul principal al ` +
+        `site-ului numără doar zilele de oprire. În ${lcy}, punctele termice din Sectorul ${sector} ` +
+        `au adunat ${fmtZile(sectorHeadlineDays)} de oprire și, pe lângă ele, ` +
+        `${fmtZile(sectorDeficientaDays)} cu presiune sau temperatură scăzută — cu ` +
+        `${sectorDeficientaPct}% mai mult decât ce se vede în cifrele de mai sus, numărate separat. ` +
+        `La ${ptsWorseDeficienta} din cele ${fmtInt(sectorPts.length)} de puncte termice ale ` +
+        `sectorului, zilele cu deficiențe au fost mai multe decât zilele de oprire.`,
+    },
     {
       question: `De ce nu am apă caldă în Sectorul ${sector}?`,
       answer:
@@ -343,7 +363,8 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
               <th scope="col" className="py-2 pr-3 font-normal">Punct termic</th>
               <th scope="col" className="py-2 pr-3 text-right font-normal">Zile fără apă caldă</th>
               <th scope="col" className="py-2 pr-3 text-right font-normal">din care avarii</th>
-              <th scope="col" className="py-2 text-right font-normal">din care programate</th>
+              <th scope="col" className="py-2 pr-3 text-right font-normal">din care programate</th>
+              <th scope="col" className="py-2 text-right font-normal">zile cu deficiențe</th>
             </tr>
           </thead>
           <tbody>
@@ -357,7 +378,8 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
                 </td>
                 <td className="py-2 pr-3 text-right">{fmtInt(r.days)}</td>
                 <td className="py-2 pr-3 text-right">{fmtInt(r.days_avarie)}</td>
-                <td className="py-2 text-right">{fmtInt(r.days_programat)}</td>
+                <td className="py-2 pr-3 text-right">{fmtInt(r.days_programat)}</td>
+                <td className="py-2 text-right">{fmtInt(r.days_deficienta)}</td>
               </tr>
             ))}
           </tbody>
@@ -386,6 +408,14 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
           Episoade înregistrate în sector în {lcy}: {fmtInt(row.episodes)}. Media zilelor din
           avarii pe punct termic: {fmtDec(row.mean_days_avarie)}; din lucrări programate:{' '}
           {fmtDec(row.mean_days_programat)}.
+        </p>
+        <p className="mt-3">
+          Zile cu presiune sau temperatură scăzută, cumulat pe punctele termice ale sectorului
+          în {lcy}: {fmtInt(sectorDeficientaDays)}, față de {fmtInt(sectorHeadlineDays)} zile de
+          oprire. Se numără separat și nu intră în cifrele de mai sus.{' '}
+          <Link href="/metodologie#deficiente" className="underline">
+            Cum le numărăm.
+          </Link>
         </p>
         <p className="mt-3">
           Alte sectoare:{' '}

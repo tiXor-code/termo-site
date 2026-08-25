@@ -203,3 +203,8 @@
   .cards { grid-template-columns: 1fr; }
   .teaser .bar { display: none; }
 }
+
+/* Legend swatch mirroring the strip's bottom-band mark at swatch scale. */
+.legend i.def {
+  background: linear-gradient(to bottom, var(--color-ok) 0 8px, var(--color-deficienta) 8px 12px);
+}

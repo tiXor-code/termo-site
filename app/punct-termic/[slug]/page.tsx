@@ -5,6 +5,7 @@ import CompareModule from '@/components/CompareModule';
 import EpisodeTable from '@/components/EpisodeTable';
 import MethodologyFootnote from '@/components/MethodologyFootnote';
 import OutageStrip from '@/components/OutageStrip';
+import StripLegend from '@/components/StripLegend';
 import StatRow from '@/components/StatRow';
 import VerdictBand from '@/components/VerdictBand';
 import {
@@ -173,11 +174,15 @@ export default async function PunctTermicPage({
               </p>
             )}
             <div className="mt-4">
+              <StripLegend deficienta />
+            </div>
+            <div className="mt-2">
               <OutageStrip
                 year={year}
                 runs={data.runs}
-                ariaLabel={`Calendarul întreruperilor ${pt.name} în ${year}`}
+                ariaLabel={`Calendarul întreruperilor ${pt.name} în ${year}, cu zilele de presiune sau temperatură scăzută marcate separat`}
                 dataThroughDoy={dataThroughDoy(meta.data_through, year)}
+                showDeficienta
                 showMonthLabels
               />
             </div>

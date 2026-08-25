@@ -6,7 +6,9 @@ import BlockFinder, { type BlockFinderPt } from '@/components/BlockFinder';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import CompareModule from '@/components/CompareModule';
 import EpisodeTable from '@/components/EpisodeTable';
+import MethodologyFootnote from '@/components/MethodologyFootnote';
 import OutageStrip from '@/components/OutageStrip';
+import StripLegend from '@/components/StripLegend';
 import RenterTip from '@/components/RenterTip';
 import VerdictBand from '@/components/VerdictBand';
 import {
@@ -23,6 +25,7 @@ import {
 } from '@/lib/data';
 import { fmtInt, fmtZile, yearLabel } from '@/lib/format';
 import { siteUrl } from '@/lib/seo';
+import { deficientaDays } from '@/lib/deficienta';
 import { verdictFor, type Verdict } from '@/lib/verdict';
 import { sectorsPhrase, streetDescription, streetTitle } from '@/lib/seo-meta';
 
@@ -58,7 +61,13 @@ export async function generateMetadata({
   };
 }
 
-const EMPTY_YEAR: StreetYear = { days: 0, days_avarie: 0, days_programat: 0, runs: [] };
+const EMPTY_YEAR: StreetYear = {
+  days: 0,
+  days_avarie: 0,
+  days_programat: 0,
+  days_deficienta: 0,
+  runs: [],
+};
 
 function dataThroughDoy(dataThrough: string, year: number): number | undefined {
   if (Number(dataThrough.slice(0, 4)) !== year) return undefined;
@@ -91,37 +100,28 @@ function PtHistory({
       <h2 className="font-display text-xl font-bold">
         Istoric — {pt.name} (blocul tău)
       </h2>
-      <div className="legend">
-        <span>
-          <i style={{ background: 'var(--color-avarie)' }} />
-          Avarii (defecțiuni)
-        </span>
-        <span>
-          <i style={{ background: 'var(--color-programat)' }} />
-          Lucrări programate
-        </span>
-        <span>
-          <i style={{ background: 'var(--color-ok)' }} />A avut apă caldă
-        </span>
-      </div>
+      <StripLegend deficienta />
       {yearsDesc.map((year, i) => {
         const yd = pt.years[String(year)];
         const days = yd?.days ?? 0;
+        const def = yd?.days_deficienta ?? 0;
         return (
           <div key={year} className="mt-4">
             <div className="flex items-baseline justify-between">
               <span className="font-display text-lg font-bold tnum">{year}</span>
               <span className="tnum text-sm text-ink-soft">
-                {days > 0 ? fmtZile(days) : 'fără întreruperi'}
+                {days > 0 ? fmtZile(days) : 'fără opriri'}
+                {def > 0 ? ` · ${fmtInt(def)} zile cu deficiențe` : ''}
               </span>
             </div>
             <div className="mt-2">
               <OutageStrip
                 year={year}
                 runs={yd?.runs ?? []}
-                ariaLabel={`Calendarul întreruperilor la ${pt.name} (${street}) în ${year}`}
+                ariaLabel={`Calendarul întreruperilor la ${pt.name} (${street}) în ${year}, cu zilele de presiune sau temperatură scăzută marcate separat`}
                 dataThroughDoy={dataThroughDoy(dataThrough, year)}
                 showMonthLabels={i === 0}
+                showDeficienta
               />
             </div>
           </div>
@@ -156,6 +156,7 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
 
   const yearsDesc = [...meta.years].sort((a, b) => b - a);
   const lcyData = street.years[String(lcy)] ?? EMPTY_YEAR;
+  const lcyDef = deficientaDays(lcyData, lcy);
   const distribution = getDistribution(lcy);
 
   // Resolve serving PTs in the street's listed order; days = the renter-facing
@@ -243,16 +244,20 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
               <h3 className="flex items-baseline gap-x-3 text-sm">
                 <span className="font-display text-lg font-bold">{yearLabel(year, meta)}</span>
                 <span className="tnum text-ink-soft">
-                  {data.days > 0 ? fmtZile(data.days) : 'fără întreruperi'}
+                  {data.days > 0 ? fmtZile(data.days) : 'fără opriri'}
+                  {deficientaDays(data, year) > 0
+                    ? ` · ${fmtInt(deficientaDays(data, year))} zile cu deficiențe`
+                    : ''}
                 </span>
               </h3>
               <div className="mt-2">
                 <OutageStrip
                   year={year}
                   runs={data.runs}
-                  ariaLabel={`Calendarul întreruperilor pe ${street.name} în ${year}`}
+                  ariaLabel={`Calendarul întreruperilor pe ${street.name} în ${year}, cu zilele de presiune sau temperatură scăzută marcate separat`}
                   dataThroughDoy={dataThroughDoy(meta.data_through, year)}
                   showMonthLabels={i === 0}
+                  showDeficienta
                 />
               </div>
             </section>
@@ -282,8 +287,11 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
                 <tr className="hairline-b text-left text-xs text-ink-soft">
                   <th scope="col" className="py-2 pr-3 font-normal">Punct termic</th>
                   <th scope="col" className="py-2 pr-3 font-normal">Sector</th>
-                  <th scope="col" className="py-2 text-right font-normal">
+                  <th scope="col" className="py-2 pr-3 text-right font-normal">
                     Zile fără apă caldă în {lcy}
+                  </th>
+                  <th scope="col" className="py-2 text-right font-normal">
+                    zile cu deficiențe
                   </th>
                 </tr>
               </thead>
@@ -296,7 +304,8 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
                       </Link>
                     </td>
                     <td className="py-2 pr-3">{s.pt.sector}</td>
-                    <td className="py-2 text-right">{fmtInt(s.days)}</td>
+                    <td className="py-2 pr-3 text-right">{fmtInt(s.days)}</td>
+                    <td className="py-2 text-right">{fmtInt(s.daysDeficienta)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -305,6 +314,16 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         )}
       </div>
     </details>
+  );
+
+  const deficientaFootnote = (
+    <div className="mt-6">
+      <MethodologyFootnote anchor="deficiente">
+        O „zi cu întrerupere" = o zi calendaristică atinsă de cel puțin un episod de oprire a
+        apei calde (avarie sau lucrare programată). Deficiențele (presiune sau temperatură
+        scăzută) se numără separat și nu intră în indicatorul principal — dar nu sunt puține.
+      </MethodologyFootnote>
+    </div>
   );
 
   const neighborsSection = street.neighbors.length > 0 && (
@@ -387,10 +406,14 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
             ? `${street.name} nu apare în anunțurile publice Termoenergetica. Vezi harta sau punctele termice din zonă.`
             : lcyData.days > 0
               ? `${street.name} a avut ${fmtZile(lcyData.days)} cu întreruperi de apă caldă în ${lcy}.`
-              : `Fără întreruperi înregistrate în ${lcy}.`}
+              : lcyDef > 0
+                ? `Fără opriri înregistrate pe ${street.name} în ${lcy} — dar ${fmtZile(lcyDef)} cu presiune sau temperatură scăzută.`
+                : `Fără întreruperi înregistrate în ${lcy}.`}
         </p>
         {!noData && unionDisclosure}
         {neighborsSection}
+      {deficientaFootnote}
+        {deficientaFootnote}
       </main>
     );
   }
@@ -426,6 +449,8 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         )}
         {unionDisclosure}
         {neighborsSection}
+      {deficientaFootnote}
+        {deficientaFootnote}
       </main>
     );
   }
@@ -469,6 +494,7 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
 
       {unionDisclosure}
       {neighborsSection}
+      {deficientaFootnote}
     </main>
   );
 }

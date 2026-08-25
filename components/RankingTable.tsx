@@ -21,12 +21,21 @@ export interface RankingTableProps {
   enableCauzaFilter?: boolean;
 }
 
-type SortKey = 'days' | 'days_avarie' | 'days_programat' | 'episodes' | 'longest_days';
+type SortKey =
+  | 'days'
+  | 'days_avarie'
+  | 'days_programat'
+  | 'days_deficienta'
+  | 'episodes'
+  | 'longest_days';
 
 const NUM_COLS: { key: SortKey; label: (year: number) => string; sectorLabel?: string }[] = [
   { key: 'days', label: () => 'Zile fără apă caldă', sectorLabel: 'Zile fără apă caldă (mediană)' },
   { key: 'days_avarie', label: () => 'din care avarii', sectorLabel: 'avarii (medie)' },
   { key: 'days_programat', label: () => 'din care programate', sectorLabel: 'programate (medie)' },
+  // Placed AFTER days_programat so the `days` cell stays at td index 3, which
+  // e2e/clasament-harta.spec.ts asserts on.
+  { key: 'days_deficienta', label: () => 'zile cu deficiențe' },
   { key: 'episodes', label: () => 'Episoade' },
   { key: 'longest_days', label: () => 'Cel mai lung episod' },
 ];
@@ -81,8 +90,11 @@ function RankingTableInner({
   const showSector = unit !== 'sector';
   const showLongest = unit !== 'sector';
   const showDelta = unit !== 'sector';
+  const showDeficienta = unit !== 'sector'; // no sector-level source field
   const cols = NUM_COLS.filter(
-    (c) => c.key !== 'longest_days' || showLongest,
+    (c) =>
+      (c.key !== 'longest_days' || showLongest) &&
+      (c.key !== 'days_deficienta' || showDeficienta),
   );
 
   const sorted = useMemo(() => {
@@ -216,7 +228,13 @@ function RankingTableWithFilter(props: Omit<RankingTableProps, 'enableCauzaFilte
   const params = useSearchParams();
   const cauza = params.get('cauza');
   const initialSort: SortKey =
-    cauza === 'avarii' ? 'days_avarie' : cauza === 'programate' ? 'days_programat' : 'days';
+    cauza === 'avarii'
+      ? 'days_avarie'
+      : cauza === 'programate'
+        ? 'days_programat'
+        : cauza === 'deficiente'
+          ? 'days_deficienta'
+          : 'days';
   return <RankingTableInner {...props} initialSort={initialSort} />;
 }
 

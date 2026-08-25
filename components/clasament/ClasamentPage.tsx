@@ -117,10 +117,11 @@ export default function ClasamentPage({ unitate, an }: { unitate: Unitate; an: n
         />
       </div>
       <div className="mt-8">
-        <MethodologyFootnote anchor="ce-numaram">
+        <MethodologyFootnote anchor="deficiente">
           O „zi cu întrerupere" = o zi calendaristică atinsă de cel puțin un episod de oprire a apei
-          calde (avarie sau lucrare programată). Deficiențele (presiune sau temperatură scăzută) se
-          numără separat și nu intră în indicatorul principal.
+          calde (avarie sau lucrare programată). Coloana „zile cu deficiențe" numără separat zilele
+          cu presiune sau temperatură scăzută: nu intră în clasament și nu se adună la total, dar la
+          aproape unul din cinci puncte termice sunt mai multe decât zilele de oprire.
         </MethodologyFootnote>
       </div>
     </main>

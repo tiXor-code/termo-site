@@ -37,7 +37,12 @@ export default function HomePage() {
   const meta = getMeta();
   const lcy = lastCompleteYear();
   const summary = getYearSummary(lcy);
-  const topPt = getPtRanking(lcy).slice(0, 10);
+  const ptRanking = getPtRanking(lcy);
+  const topPt = ptRanking.slice(0, 10);
+  const cityHeadlineDays = ptRanking.reduce((a, r) => a + r.days, 0);
+  const cityDeficientaDays = ptRanking.reduce((a, r) => a + r.days_deficienta, 0);
+  const cityDeficientaPct =
+    cityHeadlineDays > 0 ? Math.round((cityDeficientaDays / cityHeadlineDays) * 100) : 0;
   const topStrazi = getStraziRanking(lcy).slice(0, 10);
   const teaserStrazi = topStrazi.slice(0, 5);
   const teaserMax = teaserStrazi.length > 0 ? teaserStrazi[0].days : 0;
@@ -100,6 +105,16 @@ export default function HomePage() {
             <div className="lab">episoade de întreruperi reconstruite, din decembrie 2021</div>
           </div>
         </div>
+
+        <p className="mt-4 max-w-2xl text-sm text-ink-soft" data-nosnippet="">
+          Cifrele de mai sus numără doar zilele de <b>oprire</b> a apei calde. Pe lângă ele,
+          Termoenergetica a mai anunțat în {lcy} încă {fmtInt(cityDeficientaDays)} de zile
+          (punct termic × zi) cu <b>presiune sau temperatură scăzută</b> — cu{' '}
+          {cityDeficientaPct}% mai mult decât ce se vede aici.{' '}
+          <Link href="/metodologie#deficiente" className="underline">
+            Cât de mare e ce nu numărăm.
+          </Link>
+        </p>
 
         <h2 className="mt-9 mb-3.5 font-display text-xl font-bold">
           Cele mai afectate străzi în {lcy}

@@ -1,8 +1,16 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { getCitySummary, getMeta } from '@/lib/data';
-import { fmtDateRo, fmtDec, fmtInt } from '@/lib/format';
+import {
+  getCitySummary,
+  getMeta,
+  getPtAll,
+  getPtRanking,
+  lastCompleteYear,
+  type PtYear,
+} from '@/lib/data';
+import { fmtDateRo, fmtDec, fmtInt, yearLabel } from '@/lib/format';
 import { JsonLd, datasetJsonLd } from '@/lib/seo';
+import { DEFICIENTA_GUARD_DAYS } from '@/lib/verdict';
 
 export const dynamic = 'error';
 
@@ -16,6 +24,34 @@ export const metadata: Metadata = {
 export default function MetodologiePage() {
   const meta = getMeta();
   const summary = getCitySummary();
+  const lcy = lastCompleteYear();
+
+  // Every number below is computed at build from the same bundle the ranking
+  // pages already load, so the published magnitude can never go stale.
+  const deficientaByYear = meta.years.map((y) => {
+    const rows = getPtRanking(y);
+    const headline = rows.reduce((a, r) => a + r.days, 0);
+    const deficienta = rows.reduce((a, r) => a + r.days_deficienta, 0);
+    return {
+      year: y,
+      headline,
+      deficienta,
+      pct: headline > 0 ? Math.round((deficienta / headline) * 100) : 0,
+    };
+  });
+  const lcyRow = deficientaByYear.find((d) => d.year === lcy);
+  const lcyRows = getPtRanking(lcy);
+  const worseThanOutage = lcyRows.filter((r) => r.days_deficienta > r.days).length;
+  const worsePct = lcyRows.length > 0 ? (worseThanOutage / lcyRows.length) * 100 : 0;
+  const cleanButDeficient = lcyRows.filter(
+    (r) => r.days < 10 && r.days_deficienta >= DEFICIENTA_GUARD_DAYS,
+  ).length;
+  // Zero-outage PTs are dropped from the rankings entirely, so they are only
+  // reachable through the entity file.
+  const invisible = [...getPtAll().values()]
+    .map((pt) => pt.years[String(lcy)])
+    .filter((y): y is PtYear => y !== undefined && y.days === 0 && y.days_deficienta > 0);
+  const invisibleDays = invisible.reduce((a, y) => a + y.days_deficienta, 0);
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
@@ -99,7 +135,8 @@ export default function MetodologiePage() {
           <p>
             O „zi cu întrerupere" = o zi calendaristică atinsă de cel puțin un episod de oprire a
             apei calde (avarie sau lucrare programată). Deficiențele (presiune sau temperatură
-            scăzută) se numără separat și nu intră în indicatorul principal.
+            scăzută) se numără separat și nu intră în indicatorul principal. Cât de mult
+            înseamnă „separat" — mai jos.
           </p>
           <p>
             Zilele sunt zile calendaristice locale (București). Indicatorul principal al unui an
@@ -110,6 +147,80 @@ export default function MetodologiePage() {
             versiune a datelor.
           </p>
         </div>
+      </section>
+
+      <section id="deficiente" className="mt-12 border-t border-hairline pt-6">
+        <h2 className="font-display text-2xl font-bold">Cât de mare e ce nu numărăm</h2>
+        <div className="mt-3 max-w-2xl space-y-3 leading-relaxed">
+          <p>
+            Indicatorul principal numără doar zilele de <b>oprire</b> a apei calde. Pe lângă
+            ele, Termoenergetica anunță <b>deficiențe</b>: presiune sau temperatură scăzută — apă
+            călduță sau care abia curge, dar care tehnic nu e „oprită". Nu le adunăm la
+            indicatorul principal, pentru că sunt o altă stare. Dar nu sunt o notă de subsol, așa
+            că le arătăm aici, la scară, recalculate la fiecare actualizare a datelor.
+          </p>
+          <p>
+            În {lcy}, punctele termice din București au adunat{' '}
+            <b>{fmtInt(lcyRow?.headline ?? 0)} de zile de oprire</b> (punct termic × zi) și, pe
+            lângă ele, <b>{fmtInt(lcyRow?.deficienta ?? 0)} de zile cu presiune sau temperatură
+            scăzută</b> — cu {lcyRow?.pct ?? 0}% mai mult decât ce intră în clasamente.
+            Aproximativ 85% dintre zilele cu deficiențe cad în zile în care apa <i>nu</i> era
+            oprită: sunt zile în plus, nu aceleași zile numărate de două ori.
+          </p>
+        </div>
+
+        <h3 className="mt-6 font-display text-lg font-bold">Pe ani</h3>
+        <table className="mt-3 w-full max-w-xl border-collapse text-sm tnum">
+          <thead>
+            <tr className="hairline-b text-left text-xs text-ink-soft">
+              <th scope="col" className="py-2 pr-3 font-normal">An</th>
+              <th scope="col" className="py-2 pr-3 text-right font-normal">Zile de oprire</th>
+              <th scope="col" className="py-2 pr-3 text-right font-normal">Zile cu deficiențe</th>
+              <th scope="col" className="py-2 text-right font-normal">Deficiențe față de opriri</th>
+            </tr>
+          </thead>
+          <tbody>
+            {deficientaByYear.map((d) => (
+              <tr key={d.year} className="hairline-b">
+                <td className="py-2 pr-3">{yearLabel(d.year, meta)}</td>
+                <td className="py-2 pr-3 text-right">{fmtInt(d.headline)}</td>
+                <td className="py-2 pr-3 text-right">{fmtInt(d.deficienta)}</td>
+                <td className="py-2 text-right">{d.pct}%</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="mt-2 text-xs text-ink-soft">
+          Zile cumulate punct termic × zi, pe toate punctele termice din clasamentul anului.
+        </p>
+
+        <h3 className="mt-6 font-display text-lg font-bold">Pe cine ascunde</h3>
+        <ul className="mt-3 max-w-2xl list-disc space-y-2 pl-5 leading-relaxed">
+          <li>
+            <b>{fmtInt(worseThanOutage)}</b> din cele {fmtInt(lcyRows.length)} de puncte termice
+            clasate în {lcy} ({fmtDec(worsePct)}%) au avut mai multe zile cu deficiențe decât zile
+            de oprire.
+          </li>
+          <li>
+            La <b>{fmtInt(cleanButDeficient)}</b> puncte termice, verdictul calculat doar din
+            opriri ar fi ieșit „Curat" (sub 10 zile), deși au avut cel puțin{' '}
+            {DEFICIENTA_GUARD_DAYS} de zile cu presiune sau temperatură scăzută. Pentru ele,
+            verdictul de pe pagină trece la „Moderat" — numărul mare rămâne neschimbat, doar
+            eticheta spune adevărul întreg.
+          </li>
+          <li>
+            <b>{fmtInt(invisible.length)}</b> puncte termice au avut zero zile de oprire în {lcy},
+            dar {fmtInt(invisibleDays)} de zile cu deficiențe. Cum clasamentele se construiesc pe
+            zilele de oprire, ele lipsesc complet din clasamente și apar „curate" pe hartă.
+          </li>
+        </ul>
+
+        <p className="mt-4 max-w-2xl leading-relaxed">
+          Regula, pe scurt: numărul mare de pe fiecare pagină rămâne numărul zilelor de oprire și
+          nu se schimbă niciodată din cauza deficiențelor. Deficiențele apar ca al doilea număr,
+          iar dacă depășesc {DEFICIENTA_GUARD_DAYS} de zile într-un an, verdictul unei zone nu mai
+          poate fi „Curat".
+        </p>
       </section>
 
       <section id="avarii-vs-programate" className="mt-12 border-t border-hairline pt-6">
@@ -226,6 +337,14 @@ export default function MetodologiePage() {
           <li>
             {fmtDateRo(meta.generated_at.slice(0, 10))} — ultima regenerare a setului de date
             (date până la {fmtDateRo(meta.data_through)}).
+          </li>
+          <li>
+            August 2026 — deficiențele (presiune sau temperatură scăzută) sunt acum afișate peste
+            tot unde apare indicatorul principal, cu mărimea lor publicată mai sus. Indicatorul
+            principal nu s-a schimbat: numără în continuare doar zilele de oprire, iar toate
+            cifrele istorice au rămas identice. Singura schimbare de verdict: o zonă cu cel puțin{' '}
+            {DEFICIENTA_GUARD_DAYS} de zile cu deficiențe într-un an nu mai poate fi etichetată
+            „Curat".
           </li>
           <li>
             Iunie 2026 — prima versiune publică: episoade de oprire ACC, {summary.length} ani de
