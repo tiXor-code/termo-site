@@ -149,6 +149,10 @@ export default async function PunctTermicPage({
         </MethodologyFootnote>
       </div>
 
+      <div className="mt-8">
+        <StripLegend deficienta />
+      </div>
+
       {yearsDesc.map((year) => {
         const data = pt.years[String(year)] ?? EMPTY_YEAR;
         const distribution = getDistribution(year);
@@ -173,9 +177,6 @@ export default async function PunctTermicPage({
                 )}
               </p>
             )}
-            <div className="mt-4">
-              <StripLegend deficienta />
-            </div>
             <div className="mt-2">
               <OutageStrip
                 year={year}

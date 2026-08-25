@@ -412,7 +412,6 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         </p>
         {!noData && unionDisclosure}
         {neighborsSection}
-      {deficientaFootnote}
         {deficientaFootnote}
       </main>
     );
@@ -449,7 +448,6 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         )}
         {unionDisclosure}
         {neighborsSection}
-      {deficientaFootnote}
         {deficientaFootnote}
       </main>
     );
