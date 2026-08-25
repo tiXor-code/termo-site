@@ -237,6 +237,13 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
           tău este cel de la punctul termic care îl deservește, ales mai sus.
         </p>
 
+        {/* This block has its own strips, and it is inside a <details> the
+            reader opens on demand — the legend rendered by PtHistory belongs to
+            a different section and may not even be on screen. */}
+        <div className="mt-4">
+          <StripLegend deficienta />
+        </div>
+
         {yearsDesc.map((year, i) => {
           const data = street.years[String(year)] ?? EMPTY_YEAR;
           return (
