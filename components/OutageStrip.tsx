@@ -51,6 +51,11 @@ export default function OutageStrip({
 }) {
   const total = daysInYear(year);
   const segments = runsToSegments(runs, year, { includeDeficienta: showDeficienta });
+  // One subpath per deficiency run: M x DEF_Y h w v DEF_H h -w z
+  const defPath = segments
+    .filter((seg) => seg.cause === 'deficienta')
+    .map((seg) => `M${seg.x} ${DEF_Y}h${seg.width}v${DEF_H}h${-seg.width}z`)
+    .join('');
   const noDataStart =
     dataThroughDoy !== undefined ? Math.max(0, Math.min(total, dataThroughDoy)) : null;
 
@@ -65,17 +70,9 @@ export default function OutageStrip({
         shapeRendering="crispEdges"
       >
         <rect x={0} y={0} width={total} height={14} fill="var(--color-ok)" />
-        {segments.map((seg) =>
-          seg.cause === 'deficienta' ? (
-            <rect
-              key={`${seg.x}-deficienta`}
-              x={seg.x}
-              y={DEF_Y}
-              width={seg.width}
-              height={DEF_H}
-              fill="var(--color-deficienta)"
-            />
-          ) : (
+        {segments
+          .filter((seg) => seg.cause !== 'deficienta')
+          .map((seg) => (
             <rect
               key={`${seg.x}-${seg.cause}`}
               x={seg.x}
@@ -84,8 +81,12 @@ export default function OutageStrip({
               height={14}
               fill={CAUSE_FILL[seg.cause]}
             />
-          ),
-        )}
+          ))}
+        {/* Deficiency bands collapse into ONE <path> rather than one <rect>
+            each. A deficiency-heavy year produces ~60 disjoint runs, and a
+            mega-street renders 150+ strips, so per-run elements inflated the
+            page by ~19%. Subpaths are visually identical and cost one node. */}
+        {defPath !== '' && <path d={defPath} fill="var(--color-deficienta)" />}
         {noDataStart !== null && noDataStart < total && (
           <rect
             x={noDataStart}

@@ -134,7 +134,17 @@ function RankingTableInner({
 
   return (
     <div>
-      <table className="w-full border-collapse text-sm tnum">
+      {/* The table gained a column and no longer fits a 390px viewport. Scroll
+          the table itself rather than the page, and expose it to assistive tech
+          and the keyboard: a scrollable region needs a role and a tabIndex or it
+          cannot be reached without a pointer. */}
+      <div
+        className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0"
+        role="region"
+        aria-label={`Clasament ${entityHead.toLowerCase()} — tabel derulabil orizontal`}
+        tabIndex={0}
+      >
+        <table className="w-full min-w-[46rem] border-collapse text-sm tnum md:min-w-0">
         <thead>
           <tr className="hairline-b text-left text-xs text-ink-soft">
             <th scope="col" className="py-2 pr-3 font-normal">
@@ -204,7 +214,8 @@ function RankingTableInner({
             ))}
           </tbody>
         ))}
-      </table>
+        </table>
+      </div>
       {restUrl && rows.length < totalCount && (
         <p className="mt-4">
           <button
