@@ -66,6 +66,17 @@ export function ptDescription(pt: PtEntity, an: number): string {
   const who = `${pt.name} (Sector ${pt.sector})`;
   const y = pt.years[String(an)];
   if (!y || y.days === 0) {
+    // A zero-outage PT can still carry deficiency days. Claiming "fără
+    // întreruperi" here would contradict the page body, which now reports them
+    // — a body/description mismatch Google can see.
+    const def = y?.days_deficienta ?? 0;
+    if (def > 0) {
+      return fitDescription([
+        `${who}: fără opriri de apă caldă în ${an}, dar ${fmtInt(def)} zile cu presiune sau temperatură scăzută. Istoric complet pe ani.`,
+        `${who}: fără opriri în ${an}, dar ${fmtInt(def)} zile cu presiune sau temperatură scăzută.`,
+        `${cutAtWord(pt.name, 80)} (Sector ${pt.sector}): fără opriri în ${an}, ${fmtInt(def)} zile cu deficiențe.`,
+      ]);
+    }
     return fitDescription([
       `${who}: fără întreruperi de apă caldă înregistrate în ${an}. Istoric complet pe ani, episoade și comparație cu orașul.`,
       `${who}: fără întreruperi de apă caldă înregistrate în ${an}. Istoric complet pe ani.`,

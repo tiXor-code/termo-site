@@ -124,3 +124,28 @@ describe('lib/seo-meta description bounds', () => {
     expect(d).not.toContain('din avarii');
   });
 });
+
+describe('ptDescription with deficienta but no outages', () => {
+  it('does not claim "fără întreruperi" when the page body reports deficienta days', () => {
+    const d = ptDescription(pt('Sere POLITEHNICA', { days: 0, days_deficienta: 8 }), 2025);
+    // The body renders "Fără opriri ... dar 8 zile cu presiune sau temperatură
+    // scăzută"; a description saying "fără întreruperi" would contradict it.
+    expect(d).not.toContain('fără întreruperi');
+    expect(d).toContain('fără opriri');
+    expect(d).toContain('8');
+  });
+
+  it('still says "fără întreruperi" when there is genuinely nothing to report', () => {
+    const d = ptDescription(pt('Modul Alfa', { days: 0, days_deficienta: 0 }), 2025);
+    expect(d).toContain('fără întreruperi');
+  });
+
+  it('is unchanged for a PT with real outage days', () => {
+    const d = ptDescription(
+      pt('Modul Beta', { days: 45, days_avarie: 40, days_programat: 5, days_deficienta: 12 }),
+      2025,
+    );
+    expect(d).toContain('45');
+    expect(d).toContain('din avarii');
+  });
+});
