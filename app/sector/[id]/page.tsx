@@ -12,7 +12,7 @@ import {
   lastCompleteYear,
 } from '@/lib/data';
 import { fmtDateRo, fmtDateTimeRo, fmtDec, fmtInt, fmtZile, yearLabel } from '@/lib/format';
-import { getSectorLive, type SectorLive } from '@/lib/sector-live';
+import { getSectorLive, RECENT_ENDED_DAYS, type SectorLive } from '@/lib/sector-live';
 import { faqJsonLd, JsonLd } from '@/lib/seo';
 
 export const dynamic = 'error';
@@ -40,6 +40,9 @@ function fmtPuncteTermice(n: number): string {
 
 /** Names shown inline per announcement before the rest folds into <details>. */
 const PTS_SHOWN = 6;
+
+/** Rows shown in the recently-ended table before it truncates. */
+const RECENT_SHOWN = 8;
 
 /** Median avarie duration for prose: "sub o oră" / "9 ore" / "2,5 zile". */
 function fmtDurata(hours: number): string {
@@ -91,8 +94,8 @@ export async function generateMetadata({
   const lcy = lastCompleteYear();
   const row = getSectoareRanking(lcy).find((r) => r.sector === Number(id));
   return {
-    title: `Apă caldă în Sectorul ${id} — avarii azi și istoric`,
-    description: `Avariile de apă caldă în curs în Sectorul ${id}, actualizate zilnic din anunțurile Termoenergetica, și istoricul complet: mediana de ${row ? fmtZile(row.median_days) : '?'} fără apă caldă în ${lcy}.`,
+    title: `Apă caldă în Sectorul ${id} — avarii acum și istoric`,
+    description: `Este oprită apa caldă în Sectorul ${id} acum? Întreruperile în curs azi, actualizate zilnic din anunțurile Termoenergetica, și istoricul complet: mediana de ${row ? fmtZile(row.median_days) : '?'} fără apă caldă în ${lcy} și cele mai afectate zone.`,
     alternates: { canonical: `/sector/${id}` },
   };
 }
@@ -147,6 +150,15 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
         `site ca să vezi punctul termic care o deservește și istoricul lui complet.`,
     },
     {
+      question: `Cum aflu dacă e o avarie de apă caldă în Sectorul ${sector} chiar acum?`,
+      answer:
+        `Această pagină arată întreruperile în curs și pe cele încheiate recent din anunțurile ` +
+        `publice Termoenergetica și se actualizează o dată pe noapte, deci o avarie apărută în ` +
+        `cursul zilei poate intra pe listă abia la următoarea actualizare. Pentru anunțurile de ` +
+        `ultimă oră verifică site-ul oficial cmteb.ro, iar pentru blocul tău caută strada pe ` +
+        `acest site ca să vezi pagina punctului termic care o deservește.`,
+    },
+    {
       question: `Când revine apa caldă după o avarie în Sectorul ${sector}?`,
       answer:
         `Termoenergetica publică pentru fiecare întrerupere un termen estimat de restabilire, ` +
@@ -189,7 +201,8 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
         {status} În ultimele 30 de zile, {fmtInt(live.ptsHit30d)} din {fmtInt(live.ptsTotal)}{' '}
         puncte termice din sector au avut cel puțin o întrerupere, iar în {lcy} punctul termic
         median din Sectorul {sector} a stat {fmtZile(row.median_days)} fără apă caldă. Mai
-        jos: situația de acum, cele mai afectate zone și evoluția pe ani.
+        jos: situația de acum, întreruperile încheiate recent, cele mai afectate zone și
+        evoluția pe ani.
       </p>
 
       <section className="mt-10">
@@ -281,6 +294,13 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
                 </tbody>
               </table>
             </div>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed">
+              Blocul tău nu apare în listă?{' '}
+              <Link href="/cauta" className="underline">
+                Caută strada ta
+              </Link>{' '}
+              ca să vezi punctul termic care o deservește și istoricul lui complet.
+            </p>
           </>
         ) : (
           <p className="mt-3 max-w-2xl text-sm leading-relaxed">
@@ -300,6 +320,72 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
           Actualizat o dată pe noapte din anunțurile publice Termoenergetica. O avarie apărută
           azi poate intra pe listă abia la următoarea actualizare.
         </p>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="hairline-b pb-2 font-display text-xl font-bold">
+          Ce întreruperi s-au încheiat recent în Sectorul {sector}?
+        </h2>
+        {live.recentEnded.length > 0 ? (
+          <>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed">
+              În ultimele {RECENT_ENDED_DAYS} zile (până la {fmtDateRo(meta.data_through)}),
+              în Sectorul {sector} {live.recentEnded.length === 1 ? 's-a încheiat' : 's-au încheiat'}{' '}
+              {fmtIntreruperi(live.recentEnded.length)} de apă caldă. Dacă apa caldă tocmai a
+              revenit la tine, episodul blocului tău e probabil unul dintre acestea.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="mt-3 w-full border-collapse text-sm tnum">
+                <thead>
+                  <tr className="hairline-b text-left text-xs text-ink-soft">
+                    <th scope="col" className="py-2 pr-3 font-normal">Punct termic</th>
+                    <th scope="col" className="py-2 pr-3 font-normal">Cauză</th>
+                    <th scope="col" className="py-2 pr-3 font-normal">Început</th>
+                    <th scope="col" className="py-2 pr-3 font-normal">S-a încheiat</th>
+                    <th scope="col" className="py-2 font-normal">Durată</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {live.recentEnded.slice(0, RECENT_SHOWN).map((r) => (
+                    <tr key={`${r.slug}|${r.start}`} className="hairline-b align-baseline">
+                      <td className="min-w-[10rem] py-2 pr-3 font-sans">
+                        <Link href={`/punct-termic/${r.slug}`} className="hover:underline">
+                          {r.name}
+                        </Link>
+                        {r.streets.length > 0 ? (
+                          <span className="text-ink-soft"> ({r.streets.join(', ')})</span>
+                        ) : null}
+                      </td>
+                      <td
+                        className={`py-2 pr-3 whitespace-nowrap ${r.cause_class === 'avarie' ? 'text-avarie' : r.cause_class === 'programat' ? 'text-programat' : 'text-ink-soft'}`}
+                      >
+                        {r.cause_class === 'avarie'
+                          ? 'avarie'
+                          : r.cause_class === 'programat'
+                            ? 'programat'
+                            : 'neclasificat'}
+                      </td>
+                      <td className="py-2 pr-3 whitespace-nowrap">{fmtDateTimeRo(r.start)}</td>
+                      <td className="py-2 pr-3 whitespace-nowrap">{fmtDateTimeRo(r.end)}</td>
+                      <td className="py-2 whitespace-nowrap">{fmtDurata(r.durationHours)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {live.recentEnded.length > RECENT_SHOWN ? (
+              <p className="mt-2 text-xs text-ink-soft">
+                Cele mai recente {RECENT_SHOWN} din {fmtIntreruperi(live.recentEnded.length)}{' '}
+                încheiate în acest interval; restul apar pe paginile punctelor termice.
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed">
+            Nicio întrerupere de apă caldă încheiată în ultimele {RECENT_ENDED_DAYS} zile în
+            Sectorul {sector} (date până la {fmtDateRo(meta.data_through)}).
+          </p>
+        )}
       </section>
 
       <StatHero

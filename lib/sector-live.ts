@@ -31,11 +31,24 @@ export interface OngoingGroup {
   pts: { slug: string; name: string; streets: string[] }[];
 }
 
+export interface RecentEndedRow {
+  slug: string;
+  name: string;
+  streets: string[];
+  cause_class: Episode['cause_class'];
+  start: string;
+  end: string;
+  /** end − start; 0 when the timestamps are equal or inconsistent. */
+  durationHours: number;
+}
+
 export interface SectorLive {
   /** Episodes still marked ongoing, avarie first, newest start first. */
   ongoing: OngoingRow[];
   /** `ongoing` collapsed per announcement, same order (avarie first, newest first). */
   groups: OngoingGroup[];
+  /** Completed episodes that ended in the last RECENT_ENDED_DAYS, newest end first. */
+  recentEnded: RecentEndedRow[];
   /** Distinct PTs in the sector with any episode overlapping the last 30 days. */
   ptsHit30d: number;
   /** Total PTs in the sector (same universe the scan runs over). */
@@ -53,6 +66,35 @@ function parseLocalIso(iso: string): number | null {
 }
 
 const DAY_MS = 86_400_000;
+
+/** Window for "just ended" episodes on the sector page. */
+export const RECENT_ENDED_DAYS = 7;
+
+/**
+ * Build the RecentEndedRow for an episode that completed in the
+ * RECENT_ENDED_DAYS before data_through; null for everything else (ongoing,
+ * no end, ended earlier, unparsable timestamps).
+ */
+export function recentEndedRow(
+  pt: { slug: string; name: string; streets: { name: string }[] },
+  e: Episode,
+  dataThroughMs: number,
+): RecentEndedRow | null {
+  if (e.ongoing || e.end === null) return null;
+  const endMs = parseLocalIso(e.end);
+  if (endMs === null || endMs < dataThroughMs - RECENT_ENDED_DAYS * DAY_MS) return null;
+  const startMs = parseLocalIso(e.start);
+  if (startMs === null) return null;
+  return {
+    slug: pt.slug,
+    name: pt.name,
+    streets: pt.streets.slice(0, 2).map((s) => s.name),
+    cause_class: e.cause_class,
+    start: e.start,
+    end: e.end,
+    durationHours: endMs > startMs ? (endMs - startMs) / 3_600_000 : 0,
+  };
+}
 
 const nameCollator = new Intl.Collator('ro', { numeric: true, sensitivity: 'base' });
 
@@ -87,6 +129,8 @@ export function getSectorLive(sector: number, avarieYear: number): SectorLive {
 
   const ongoing: OngoingRow[] = [];
   const seenOngoing = new Set<string>();
+  const recentEnded: RecentEndedRow[] = [];
+  const seenRecent = new Set<string>();
   const hit30d = new Set<string>();
   const avarieDurations: number[] = [];
   let ptsTotal = 0;
@@ -119,6 +163,14 @@ export function getSectorLive(sector: number, avarieYear: number): SectorLive {
           hit30d.add(pt.slug);
         }
 
+        if (!seenRecent.has(key)) {
+          const recent = recentEndedRow(pt, e, dataThroughMs);
+          if (recent !== null) {
+            seenRecent.add(key);
+            recentEnded.push(recent);
+          }
+        }
+
         if (
           Number(year) === avarieYear &&
           e.cause_class === 'avarie' &&
@@ -132,6 +184,9 @@ export function getSectorLive(sector: number, avarieYear: number): SectorLive {
       }
     }
   }
+
+  // Newest end first; ISO strings compare chronologically.
+  recentEnded.sort((a, b) => b.end.localeCompare(a.end) || b.start.localeCompare(a.start));
 
   ongoing.sort((a, b) => {
     const aAvarie = a.cause_class === 'avarie' ? 0 : 1;
@@ -153,6 +208,7 @@ export function getSectorLive(sector: number, avarieYear: number): SectorLive {
   return {
     ongoing,
     groups: groupOngoing(ongoing),
+    recentEnded,
     ptsHit30d: hit30d.size,
     ptsTotal,
     medianAvarieHours,
