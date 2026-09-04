@@ -4,6 +4,7 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import CompareModule from '@/components/CompareModule';
 import EpisodeTable from '@/components/EpisodeTable';
 import MethodologyFootnote from '@/components/MethodologyFootnote';
+import OngoingBand from '@/components/OngoingBand';
 import OutageStrip from '@/components/OutageStrip';
 import StripLegend from '@/components/StripLegend';
 import StatRow from '@/components/StatRow';
@@ -18,6 +19,7 @@ import {
   type PtYear,
 } from '@/lib/data';
 import { fmtInt, fmtZile, yearLabel } from '@/lib/format';
+import { ongoingForPt } from '@/lib/pt-live';
 import { siteUrl } from '@/lib/seo';
 import { ptDescription, ptTitle } from '@/lib/seo-meta';
 
@@ -98,6 +100,11 @@ export default async function PunctTermicPage({
         name={pt.name}
         cityMedian={lcySummary.median_pt_days}
         partial={lcySummary.partial}
+      />
+      <OngoingBand
+        ongoing={ongoingForPt(pt.years)}
+        dataThrough={meta.data_through}
+        sector={pt.sector}
       />
 
       <h1 className="mt-6 font-display text-3xl font-bold">{pt.name}</h1>

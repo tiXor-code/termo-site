@@ -10,6 +10,7 @@ import MethodologyFootnote from '@/components/MethodologyFootnote';
 import OutageStrip from '@/components/OutageStrip';
 import StripLegend from '@/components/StripLegend';
 import RenterTip from '@/components/RenterTip';
+import OngoingBand from '@/components/OngoingBand';
 import VerdictBand from '@/components/VerdictBand';
 import {
   getDistribution,
@@ -26,6 +27,7 @@ import {
 import { fmtInt, fmtZile, yearLabel } from '@/lib/format';
 import { siteUrl } from '@/lib/seo';
 import { deficientaDays } from '@/lib/deficienta';
+import { ongoingForPt } from '@/lib/pt-live';
 import { verdictFor, type Verdict } from '@/lib/verdict';
 import { sectorsPhrase, streetDescription, streetTitle } from '@/lib/seo-meta';
 
@@ -189,6 +191,11 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         scope="block"
         cityMedian={cityMedian}
         partial={lcyPartial}
+      />
+      <OngoingBand
+        ongoing={ongoingForPt(s.pt.years)}
+        dataThrough={meta.data_through}
+        sector={s.pt.sector}
       />
       <RenterTip grade={s.key} />
       <PtHistory pt={s.pt} street={street.name} yearsDesc={yearsDesc} dataThrough={meta.data_through} />
