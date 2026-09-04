@@ -26,6 +26,10 @@
 /* utilities */
 .tnum { font-variant-numeric: tabular-nums; }
 .hairline-b { border-bottom: 1px solid var(--color-hairline); }
+
+/* Only one ask on screen: while the app poll holds the view, the floating
+   feedback pill steps aside. AppPollModal sets the attribute. */
+body[data-app-poll="open"] [aria-label="Feedback despre site"] { display: none; }
 .display-num { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.01em; }
 
 /* ===== verdict band =====
