@@ -1,3 +1,7 @@
+<!-- SEC-RULES v1 START -->
+**Security gate.** Every change made in this workspace must comply with the Secure Development Rules Reference: `~/aios/security/rules/secure-development-rules-reference.md` (index: `~/aios/security/rules/RULES-INDEX.md`). Before completing any task, check the work against those rules and flag every breach with its SEC ID and severity. CRITICAL breaches block completion -- fix or escalate before proceeding. For security-relevant changes (auth, secrets, input handling, dependencies, agent/MCP/hook/skill config), read the matching rule section first.
+<!-- SEC-RULES v1 END -->
+
 # termo-site
 
 [faraapacalda.ro](https://faraapacalda.ro) — Next 16 App Router, TypeScript strict,
@@ -16,6 +20,12 @@ npx playwright test             # needs .data/ populated AND a production build
 `DATA_BUNDLE_PATH=/abs/path/bundle.tar.gz node scripts/fetch-data.mjs` builds against a
 local bundle instead of the published release. That is the way to develop against a
 bundle the nightly has not published yet.
+
+**A server already on :3000 makes Playwright test stale code.** `reuseExistingServer` is
+on outside CI, so if anything is serving :3000 the webServer step is skipped and no
+rebuild happens — the suite silently runs against whatever was built last, including a
+different `NEXT_PUBLIC_*` inlining. A suite that finishes suspiciously fast (no build) is
+the tell. Free the port first: `kill $(lsof -ti:3000)`.
 
 ## Pure SSG is a constraint, not a preference
 
