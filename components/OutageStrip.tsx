@@ -9,6 +9,17 @@ const CAUSE_FILL: Record<string, string> = {
   unclassified: 'var(--color-ink-soft)',
 };
 
+/**
+ * Deficiency days render as a 4-unit band at the BOTTOM of the 14-unit strip,
+ * never a full-height block, so the full-height footprint still equals the
+ * headline `days`. A band rather than a 45-degree hatch because the SVG uses
+ * preserveAspectRatio="none" at ~3x horizontal scale: a hatch would render at
+ * ~17 degrees on desktop and shift with viewport width, while a band is
+ * aspect-ratio-immune and needs no <defs>/pattern id.
+ */
+const DEF_Y = 10;
+const DEF_H = 4;
+
 /** 0-based day-of-year for the 1st of each month. */
 function monthStartIndexes(year: number): number[] {
   const jan1 = Date.UTC(year, 0, 1);
@@ -28,15 +39,23 @@ export default function OutageStrip({
   ariaLabel,
   dataThroughDoy,
   showMonthLabels = false,
+  showDeficienta = false,
 }: {
   year: number;
   runs: Run[];
   ariaLabel: string;
   dataThroughDoy?: number;
   showMonthLabels?: boolean;
+  /** Opt in to painting the 4th cause class as a bottom band. */
+  showDeficienta?: boolean;
 }) {
   const total = daysInYear(year);
-  const segments = runsToSegments(runs, year);
+  const segments = runsToSegments(runs, year, { includeDeficienta: showDeficienta });
+  // One subpath per deficiency run: M x DEF_Y h w v DEF_H h -w z
+  const defPath = segments
+    .filter((seg) => seg.cause === 'deficienta')
+    .map((seg) => `M${seg.x} ${DEF_Y}h${seg.width}v${DEF_H}h${-seg.width}z`)
+    .join('');
   const noDataStart =
     dataThroughDoy !== undefined ? Math.max(0, Math.min(total, dataThroughDoy)) : null;
 
@@ -51,16 +70,23 @@ export default function OutageStrip({
         shapeRendering="crispEdges"
       >
         <rect x={0} y={0} width={total} height={14} fill="var(--color-ok)" />
-        {segments.map((seg) => (
-          <rect
-            key={`${seg.x}-${seg.cause}`}
-            x={seg.x}
-            y={0}
-            width={seg.width}
-            height={14}
-            fill={CAUSE_FILL[seg.cause]}
-          />
-        ))}
+        {segments
+          .filter((seg) => seg.cause !== 'deficienta')
+          .map((seg) => (
+            <rect
+              key={`${seg.x}-${seg.cause}`}
+              x={seg.x}
+              y={0}
+              width={seg.width}
+              height={14}
+              fill={CAUSE_FILL[seg.cause]}
+            />
+          ))}
+        {/* Deficiency bands collapse into ONE <path> rather than one <rect>
+            each. A deficiency-heavy year produces ~60 disjoint runs, and a
+            mega-street renders 150+ strips, so per-run elements inflated the
+            page by ~19%. Subpaths are visually identical and cost one node. */}
+        {defPath !== '' && <path d={defPath} fill="var(--color-deficienta)" />}
         {noDataStart !== null && noDataStart < total && (
           <rect
             x={noDataStart}

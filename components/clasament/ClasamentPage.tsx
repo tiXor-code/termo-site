@@ -11,7 +11,7 @@ import {
   getStraziRanking,
   getYearSummary,
 } from '@/lib/data';
-import { fmtDateRo, fmtInt, yearLabel } from '@/lib/format';
+import { deFor, fmtDateRo, fmtDec, fmtInt, yearLabel } from '@/lib/format';
 import {
   ptRowToView,
   sectorRowToView,
@@ -48,18 +48,24 @@ export default function ClasamentPage({ unitate, an }: { unitate: Unitate; an: n
 
   let rows: RankingRowView[];
   let totalCount: number;
+  // Full ranking rows for the footnote ratio. `rows` is sliced to 100 for
+  // strazi (the rest arrive as a client asset), so counting over it would
+  // describe the first page rather than the clasament.
+  let allRows: { days: number; days_deficienta: number }[];
   let restUrl: string | undefined;
   let maxDays: number;
   let unit: 'pt' | 'strada' | 'sector';
   if (unitate === 'puncte-termice') {
     const ranking = getPtRanking(an);
     rows = ranking.map((r, i) => ptRowToView(r, i + 1));
+    allRows = ranking;
     totalCount = ranking.length;
     maxDays = ranking[0]?.days ?? 1;
     unit = 'pt';
   } else if (unitate === 'strazi') {
     const ranking = getStraziRanking(an);
     rows = ranking.slice(0, 100).map((r, i) => streetRowToView(r, i + 1));
+    allRows = ranking;
     totalCount = ranking.length;
     restUrl = clientAsset(`rankings/strazi-${an}.json`);
     maxDays = ranking[0]?.days ?? 1;
@@ -67,10 +73,19 @@ export default function ClasamentPage({ unitate, an }: { unitate: Unitate; an: n
   } else {
     const ranking = getSectoareRanking(an);
     rows = ranking.map((r, i) => sectorRowToView(r, i + 1));
+    allRows = [];
     totalCount = ranking.length;
     maxDays = Math.max(...ranking.map((r) => r.median_days), 1);
     unit = 'sector';
   }
+
+  // The deficienta column is hidden for unit 'sector' (no sector-level source
+  // field), so the footnote must not advertise it there. The ratio is computed
+  // from the rows on THIS page rather than hardcoded: it ranges from ~1 in 16
+  // (2021) to ~1 in 3 (2026), so a fixed "unul din cinci" is wrong most years.
+  const withDeficienta = allRows.filter((r) => r.days_deficienta > r.days).length;
+  const deficientaShare = allRows.length > 0 ? withDeficienta / allRows.length : 0;
+  const unitNoun = unit === 'strada' ? 'străzi' : 'puncte termice';
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
@@ -117,10 +132,19 @@ export default function ClasamentPage({ unitate, an }: { unitate: Unitate; an: n
         />
       </div>
       <div className="mt-8">
-        <MethodologyFootnote anchor="ce-numaram">
+        <MethodologyFootnote anchor="deficiente">
           O „zi cu întrerupere" = o zi calendaristică atinsă de cel puțin un episod de oprire a apei
           calde (avarie sau lucrare programată). Deficiențele (presiune sau temperatură scăzută) se
           numără separat și nu intră în indicatorul principal.
+          {unit !== 'sector' && (
+            <>
+              {' '}
+              Coloana „zile cu deficiențe" le arată: nu se adaugă la total, dar la{' '}
+              {fmtInt(withDeficienta)} din {fmtInt(allRows.length)} {deFor(allRows.length)}
+              {unitNoun} din acest clasament ({fmtDec(100 * deficientaShare, 0)}%) sunt mai multe
+              decât zilele de oprire.
+            </>
+          )}
         </MethodologyFootnote>
       </div>
     </main>

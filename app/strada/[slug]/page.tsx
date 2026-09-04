@@ -6,7 +6,9 @@ import BlockFinder, { type BlockFinderPt } from '@/components/BlockFinder';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import CompareModule from '@/components/CompareModule';
 import EpisodeTable from '@/components/EpisodeTable';
+import MethodologyFootnote from '@/components/MethodologyFootnote';
 import OutageStrip from '@/components/OutageStrip';
+import StripLegend from '@/components/StripLegend';
 import RenterTip from '@/components/RenterTip';
 import VerdictBand from '@/components/VerdictBand';
 import {
@@ -23,7 +25,8 @@ import {
 } from '@/lib/data';
 import { fmtInt, fmtZile, yearLabel } from '@/lib/format';
 import { siteUrl } from '@/lib/seo';
-import { gradeFor } from '@/lib/verdict';
+import { deficientaDays } from '@/lib/deficienta';
+import { verdictFor, type Verdict } from '@/lib/verdict';
 import { sectorsPhrase, streetDescription, streetTitle } from '@/lib/seo-meta';
 
 export const dynamic = 'error';
@@ -58,7 +61,13 @@ export async function generateMetadata({
   };
 }
 
-const EMPTY_YEAR: StreetYear = { days: 0, days_avarie: 0, days_programat: 0, runs: [] };
+const EMPTY_YEAR: StreetYear = {
+  days: 0,
+  days_avarie: 0,
+  days_programat: 0,
+  days_deficienta: 0,
+  runs: [],
+};
 
 function dataThroughDoy(dataThrough: string, year: number): number | undefined {
   if (Number(dataThrough.slice(0, 4)) !== year) return undefined;
@@ -91,37 +100,28 @@ function PtHistory({
       <h2 className="font-display text-xl font-bold">
         Istoric — {pt.name} (blocul tău)
       </h2>
-      <div className="legend">
-        <span>
-          <i style={{ background: 'var(--color-avarie)' }} />
-          Avarii (defecțiuni)
-        </span>
-        <span>
-          <i style={{ background: 'var(--color-programat)' }} />
-          Lucrări programate
-        </span>
-        <span>
-          <i style={{ background: 'var(--color-ok)' }} />A avut apă caldă
-        </span>
-      </div>
+      <StripLegend deficienta />
       {yearsDesc.map((year, i) => {
         const yd = pt.years[String(year)];
         const days = yd?.days ?? 0;
+        const def = yd?.days_deficienta ?? 0;
         return (
           <div key={year} className="mt-4">
             <div className="flex items-baseline justify-between">
               <span className="font-display text-lg font-bold tnum">{year}</span>
               <span className="tnum text-sm text-ink-soft">
-                {days > 0 ? fmtZile(days) : 'fără întreruperi'}
+                {days > 0 ? fmtZile(days) : 'fără opriri'}
+                {def > 0 ? ` · ${fmtZile(def)} cu deficiențe` : ''}
               </span>
             </div>
             <div className="mt-2">
               <OutageStrip
                 year={year}
                 runs={yd?.runs ?? []}
-                ariaLabel={`Calendarul întreruperilor la ${pt.name} (${street}) în ${year}`}
+                ariaLabel={`Calendarul întreruperilor la ${pt.name} (${street}) în ${year}, cu zilele de presiune sau temperatură scăzută marcate separat`}
                 dataThroughDoy={dataThroughDoy(dataThrough, year)}
                 showMonthLabels={i === 0}
+                showDeficienta
               />
             </div>
           </div>
@@ -156,6 +156,7 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
 
   const yearsDesc = [...meta.years].sort((a, b) => b - a);
   const lcyData = street.years[String(lcy)] ?? EMPTY_YEAR;
+  const lcyDef = deficientaDays(lcyData, lcy);
   const distribution = getDistribution(lcy);
 
   // Resolve serving PTs in the street's listed order; days = the renter-facing
@@ -164,8 +165,9 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
     .map((ptSlug) => ptAll.get(ptSlug))
     .filter((pt): pt is PtEntity => pt !== undefined)
     .map((pt) => {
-      const days = pt.years[String(lcy)]?.days ?? 0;
-      return { pt, days, ...gradeFor(days) };
+      const yd = pt.years[String(lcy)];
+      const days = yd?.days ?? 0;
+      return { pt, days, ...verdictFor(days, yd?.days_deficienta ?? 0) };
     });
 
   // Deploy-order safety: the bundle's `blocks` field may be absent on an older
@@ -181,6 +183,7 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
     <>
       <VerdictBand
         days={s.days}
+        daysDeficienta={s.daysDeficienta}
         year={lcy}
         name={`PT ${s.pt.name}`}
         scope="block"
@@ -234,6 +237,13 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
           tău este cel de la punctul termic care îl deservește, ales mai sus.
         </p>
 
+        {/* This block has its own strips, and it is inside a <details> the
+            reader opens on demand — the legend rendered by PtHistory belongs to
+            a different section and may not even be on screen. */}
+        <div className="mt-4">
+          <StripLegend deficienta />
+        </div>
+
         {yearsDesc.map((year, i) => {
           const data = street.years[String(year)] ?? EMPTY_YEAR;
           return (
@@ -241,16 +251,20 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
               <h3 className="flex items-baseline gap-x-3 text-sm">
                 <span className="font-display text-lg font-bold">{yearLabel(year, meta)}</span>
                 <span className="tnum text-ink-soft">
-                  {data.days > 0 ? fmtZile(data.days) : 'fără întreruperi'}
+                  {data.days > 0 ? fmtZile(data.days) : 'fără opriri'}
+                  {deficientaDays(data, year) > 0
+                    ? ` · ${fmtInt(deficientaDays(data, year))} zile cu deficiențe`
+                    : ''}
                 </span>
               </h3>
               <div className="mt-2">
                 <OutageStrip
                   year={year}
                   runs={data.runs}
-                  ariaLabel={`Calendarul întreruperilor pe ${street.name} în ${year}`}
+                  ariaLabel={`Calendarul întreruperilor pe ${street.name} în ${year}, cu zilele de presiune sau temperatură scăzută marcate separat`}
                   dataThroughDoy={dataThroughDoy(meta.data_through, year)}
                   showMonthLabels={i === 0}
+                  showDeficienta
                 />
               </div>
             </section>
@@ -280,8 +294,11 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
                 <tr className="hairline-b text-left text-xs text-ink-soft">
                   <th scope="col" className="py-2 pr-3 font-normal">Punct termic</th>
                   <th scope="col" className="py-2 pr-3 font-normal">Sector</th>
-                  <th scope="col" className="py-2 text-right font-normal">
+                  <th scope="col" className="py-2 pr-3 text-right font-normal">
                     Zile fără apă caldă în {lcy}
+                  </th>
+                  <th scope="col" className="py-2 text-right font-normal">
+                    zile cu deficiențe
                   </th>
                 </tr>
               </thead>
@@ -294,7 +311,8 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
                       </Link>
                     </td>
                     <td className="py-2 pr-3">{s.pt.sector}</td>
-                    <td className="py-2 text-right">{fmtInt(s.days)}</td>
+                    <td className="py-2 pr-3 text-right">{fmtInt(s.days)}</td>
+                    <td className="py-2 text-right">{fmtInt(s.daysDeficienta)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -303,6 +321,16 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         )}
       </div>
     </details>
+  );
+
+  const deficientaFootnote = (
+    <div className="mt-6">
+      <MethodologyFootnote anchor="deficiente">
+        O „zi cu întrerupere" = o zi calendaristică atinsă de cel puțin un episod de oprire a
+        apei calde (avarie sau lucrare programată). Deficiențele (presiune sau temperatură
+        scăzută) se numără separat și nu intră în indicatorul principal — dar nu sunt puține.
+      </MethodologyFootnote>
+    </div>
   );
 
   const neighborsSection = street.neighbors.length > 0 && (
@@ -332,7 +360,9 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
   // -------------------------------------------------------------------------
   const inferredPt = street.inferred_pt ? ptAll.get(street.inferred_pt) : undefined;
   if (servingPts.length === 0 && inferredPt) {
-    const iDays = inferredPt.years[String(lcy)]?.days ?? 0;
+    const iYear = inferredPt.years[String(lcy)];
+    const iDays = iYear?.days ?? 0;
+    const iVerdict = verdictFor(iDays, iYear?.days_deficienta ?? 0);
     return (
       <main className="mx-auto max-w-3xl px-4 py-10">
         {head}
@@ -347,13 +377,14 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         </p>
         <VerdictBand
           days={iDays}
+          daysDeficienta={iVerdict.daysDeficienta}
           year={lcy}
           name={`PT ${inferredPt.name}`}
           scope="block"
           cityMedian={cityMedian}
           partial={lcyPartial}
         />
-        <RenterTip grade={gradeFor(iDays).key} />
+        <RenterTip grade={iVerdict.key} />
         <PtHistory
           pt={inferredPt}
           street={street.name}
@@ -382,10 +413,13 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
             ? `${street.name} nu apare în anunțurile publice Termoenergetica. Vezi harta sau punctele termice din zonă.`
             : lcyData.days > 0
               ? `${street.name} a avut ${fmtZile(lcyData.days)} cu întreruperi de apă caldă în ${lcy}.`
-              : `Fără întreruperi înregistrate în ${lcy}.`}
+              : lcyDef > 0
+                ? `Fără opriri înregistrate pe ${street.name} în ${lcy} — dar ${fmtZile(lcyDef)} cu presiune sau temperatură scăzută.`
+                : `Fără întreruperi înregistrate în ${lcy}.`}
         </p>
         {!noData && unionDisclosure}
         {neighborsSection}
+        {deficientaFootnote}
       </main>
     );
   }
@@ -402,6 +436,7 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         {addressNote}
         <VerdictBand
           days={repr.days}
+          daysDeficienta={repr.daysDeficienta}
           year={lcy}
           name={`PT ${repr.pt.name}`}
           scope="block"
@@ -420,6 +455,7 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         )}
         {unionDisclosure}
         {neighborsSection}
+        {deficientaFootnote}
       </main>
     );
   }
@@ -463,12 +499,13 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
 
       {unionDisclosure}
       {neighborsSection}
+      {deficientaFootnote}
     </main>
   );
 }
 
 /** A serving PT row, narrowed to what the finder/list need. */
-type ServingPt = ReturnType<typeof gradeFor> & { pt: PtEntity; days: number };
+type ServingPt = Verdict & { pt: PtEntity; days: number };
 
 /** Pick a representative mid PT (median by days; lower-mid on ties). */
 function pickRepresentative(servingPts: ServingPt[]): ServingPt {

@@ -14,11 +14,28 @@ export function fmtDec(n: number, digits = 1): string {
   }).format(n);
 }
 
-/** Romanian plural for "zile": 1 → "1 zi", 2–19 → "N zile", >=20 → "N de zile". */
+/**
+ * Romanian plural for "zile". The "de" is decided by the LAST TWO DIGITS, not by
+ * the magnitude: 1 → "1 zi", 2–19 → "N zile", 20–99 → "N de zile", and then it
+ * cycles — 100 → "100 de zile" but 101–119 → "N zile" again, 905 → "905 zile".
+ * A plain `n >= 20` test gets 101–119, 201–219, 901–919 … wrong.
+ */
 export function fmtZile(n: number): string {
   if (n === 1) return '1 zi';
-  if (n >= 20) return `${fmtInt(n)} de zile`;
-  return `${fmtInt(n)} zile`;
+  const lastTwo = Math.abs(Math.trunc(n)) % 100;
+  const needsDe = n !== 0 && (lastTwo === 0 || lastTwo >= 20);
+  return `${fmtInt(n)}${needsDe ? ' de' : ''} zile`;
+}
+
+/**
+ * Romanian "de" for an arbitrary noun after a numeral, same last-two-digits
+ * rule. Use when a count is rendered with fmtInt and a noun that is not "zile"
+ * (e.g. "puncte termice"), so the copy does not hardcode a "de" that is only
+ * correct for some values.
+ */
+export function deFor(n: number): string {
+  const lastTwo = Math.abs(Math.trunc(n)) % 100;
+  return n !== 0 && (lastTwo === 0 || lastTwo >= 20) ? 'de ' : '';
 }
 
 const MONTHS_LONG = [

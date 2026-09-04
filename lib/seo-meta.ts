@@ -1,6 +1,7 @@
 // Title/description builders for detail pages (Group C owns this file).
 import type { PtEntity, StreetEntity } from '@/lib/data';
-import { fmtInt } from '@/lib/format';
+import { fmtInt, fmtZile } from '@/lib/format';
+import { deficientaDays } from '@/lib/deficienta';
 
 /**
  * Mirrors the `%s | Fără Apă Caldă` title template in app/layout.tsx. A plain
@@ -66,6 +67,17 @@ export function ptDescription(pt: PtEntity, an: number): string {
   const who = `${pt.name} (Sector ${pt.sector})`;
   const y = pt.years[String(an)];
   if (!y || y.days === 0) {
+    // A zero-outage PT can still carry deficiency days. Claiming "fără
+    // întreruperi" here would contradict the page body, which now reports them
+    // — a body/description mismatch Google can see.
+    const def = y?.days_deficienta ?? 0;
+    if (def > 0) {
+      return fitDescription([
+        `${who}: fără opriri de apă caldă în ${an}, dar ${fmtZile(def)} cu presiune sau temperatură scăzută. Istoric complet pe ani.`,
+        `${who}: fără opriri în ${an}, dar ${fmtZile(def)} cu presiune sau temperatură scăzută.`,
+        `${cutAtWord(pt.name, 80)} (Sector ${pt.sector}): fără opriri în ${an}, ${fmtZile(def)} cu deficiențe.`,
+      ]);
+    }
     return fitDescription([
       `${who}: fără întreruperi de apă caldă înregistrate în ${an}. Istoric complet pe ani, episoade și comparație cu orașul.`,
       `${who}: fără întreruperi de apă caldă înregistrate în ${an}. Istoric complet pe ani.`,
@@ -100,6 +112,18 @@ export function streetDescription(
   const istoric = `Istoric complet ${firstYear}–${lastYear}, pe punct termic.`;
   const y = street.years[String(an)];
   if (!y || y.days === 0) {
+    // Same body/description contradiction ptDescription guards against: a
+    // zero-outage street-year can still carry deficiency days, and the page
+    // body now reports them. Read through deficientaDays(), never the optional
+    // field, so an older bundle degrades to 0 instead of NaN.
+    const def = deficientaDays(y, an);
+    if (def > 0) {
+      return fitDescription([
+        `${street.name}: fără opriri de apă caldă în ${an}, dar ${fmtZile(def)} cu presiune sau temperatură scăzută. ${istoric}`,
+        `${street.name}: fără opriri în ${an}, dar ${fmtZile(def)} cu presiune sau temperatură scăzută.`,
+        `${cutAtWord(street.name, 60)}: fără opriri în ${an}, ${fmtZile(def)} cu deficiențe.`,
+      ]);
+    }
     return fitDescription([
       `${street.name}: fără întreruperi de apă caldă înregistrate în ${an}. ${istoric}`,
       `${street.name}: fără întreruperi de apă caldă înregistrate în ${an}.`,

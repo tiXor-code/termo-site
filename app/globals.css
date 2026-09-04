@@ -11,6 +11,7 @@
   --color-programat: #3B5BA9;
   --color-ok: #E9E0CF;          /* strip track / had hot water / zero state */
   --color-nodata: #F1ECE2;
+  --color-deficienta: #7A6B4F;  /* pressure/temperature degraded - never an outage colour */
   --color-heat-1: #E9E0CF; --color-heat-2: #E8C4AD;
   --color-heat-3: #DE9468; --color-heat-4: #CF6A33; --color-heat-5: #C2410C;
   /* verdict scale — all dark enough for white pill text (>=4.5:1 contrast). */
@@ -79,6 +80,20 @@
 .verdict[data-v="red"]    { border-left-color: var(--color-v-red);    --v-cur: var(--color-v-red); }
 .verdict .v-num   { color: var(--v-cur); }
 .verdict .v-pill  { background: var(--v-cur); }
+/* Deficienta flag + explainer. OUTLINED and explicitly transparent, never
+   filled, so they read as secondary to the grade pill and stay clear of the
+   verdict contrast rule locked by e2e/strada-finder.spec.ts. */
+.verdict .v-flag {
+  display: inline-block; margin-left: 8px; margin-bottom: 10px;
+  font-size: 12px; font-weight: 600; letter-spacing: .02em;
+  color: var(--color-ink); background: transparent;
+  border: 1px solid var(--color-deficienta); border-radius: 999px; padding: 3px 10px;
+}
+.verdict .v-def {
+  background: transparent; color: var(--color-ink-soft);
+  font-size: 13px; line-height: 1.45; margin: -4px 0 14px; max-width: 60ch;
+}
+.verdict .v-def b { color: var(--color-ink); font-weight: 600; }
 /* comparison: color confined to the YOU bar fill (direct child of its track);
    the median bar fill is a neutral grey; labels/values never colored. */
 .verdict .cmp .you .track > span { background: var(--v-cur); }
@@ -187,4 +202,9 @@
   .hero p.sub { font-size: 16px; }
   .cards { grid-template-columns: 1fr; }
   .teaser .bar { display: none; }
+}
+
+/* Legend swatch mirroring the strip's bottom-band mark at swatch scale. */
+.legend i.def {
+  background: linear-gradient(to bottom, var(--color-ok) 0 8px, var(--color-deficienta) 8px 12px);
 }

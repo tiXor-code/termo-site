@@ -13,6 +13,19 @@
     "delta_prev": null
   },
   {
+    "slug": "pt-modul-gama",
+    "name": "Modul Gama",
+    "sector": 6,
+    "days": 9,
+    "days_avarie": 9,
+    "days_programat": 0,
+    "days_deficienta": 51,
+    "episodes": 1,
+    "longest_days": 9,
+    "est_day_eq": 8.8,
+    "delta_prev": null
+  },
+  {
     "slug": "pt-modul-beta",
     "name": "Modul Beta",
     "sector": 4,
