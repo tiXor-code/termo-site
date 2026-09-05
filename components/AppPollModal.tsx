@@ -6,10 +6,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // One-question poll: "would you want an app?", then Android or iOS.
 //
 // It only fires on the pages where a visitor has just been given their answer
-// (a street or a punct termic), and only after a delay. The delay is not just
-// politeness: a dialog that covers content the moment someone arrives from
-// search is what Google treats as an intrusive interstitial, and this site
-// lives on organic search. After real engagement it is not that.
+// (a street or a punct termic), after a short delay.
+//
+// That delay was 10s, chosen so the dialog landed after real engagement rather
+// than on arrival - the pattern Google's intrusive-interstitial guidance
+// targets, which matters because this site lives on organic search. Teodor cut
+// it to 3s on 2026-09-05 for response volume, accepting that trade knowingly.
+// If organic impressions on /strada/ and /punct-termic/ dip in GSC over the
+// next few weeks, this constant is the first thing to put back.
 //
 // Answers are written in two steps against one nonce-keyed row, so tapping
 // "Da" and then closing still counts as a "Da".
@@ -18,7 +22,7 @@ const SUPPRESS_ANSWERED_MS = 365 * 24 * 3600 * 1000;
 const SUPPRESS_DISMISSED_MS = 90 * 24 * 3600 * 1000;
 // Overridable so the e2e build can push the modal out of reach of specs that
 // merely happen to visit a street page (see playwright.config.ts).
-const DELAY_MS = Number(process.env.NEXT_PUBLIC_APP_POLL_DELAY_MS) || 10_000;
+const DELAY_MS = Number(process.env.NEXT_PUBLIC_APP_POLL_DELAY_MS) || 3_000;
 const ANSWER_PAGES = ["/strada/", "/punct-termic/"];
 
 // Kill switch: set NEXT_PUBLIC_APP_POLL=0 and redeploy (or let the nightly
