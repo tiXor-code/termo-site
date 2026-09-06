@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/Link';
 import MethodologyFootnote from '@/components/MethodologyFootnote';
 import MonthBars from '@/components/MonthBars';
 import SearchBox from '@/components/SearchBox';
