@@ -181,8 +181,16 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
   // One server-rendered verdict panel per serving PT (SSG-pure), reused by the
   // block finder. Address resolution (?nr=) pre-selects the right PT INSIDE the
   // finder (Case 3) or is shown as a one-line note (Case 2) — never a duplicate.
-  const renderPtPanel = (s: ServingPt): ReactNode => (
-    <>
+  const renderPtPanel = (s: ServingPt): ReactNode => {
+    const ongoing = ongoingForPt(s.pt.years);
+    const band = (
+      <OngoingBand
+        ongoing={ongoing}
+        dataThrough={meta.data_through}
+        sector={s.pt.sector}
+      />
+    );
+    const verdict = (
       <VerdictBand
         days={s.days}
         daysDeficienta={s.daysDeficienta}
@@ -192,15 +200,30 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         cityMedian={cityMedian}
         partial={lcyPartial}
       />
-      <OngoingBand
-        ongoing={ongoingForPt(s.pt.years)}
-        dataThrough={meta.data_through}
-        sector={s.pt.sector}
-      />
-      <RenterTip grade={s.key} />
-      <PtHistory pt={s.pt} street={street.name} yearsDesc={yearsDesc} dataThrough={meta.data_through} />
-    </>
-  );
+    );
+    // When the water is off RIGHT NOW, that outranks last year's total: measured
+    // at 1440x900, the restore time otherwise renders 4px below the fold, behind
+    // the whole verdict card. When nothing is ongoing the quiet "no announcement"
+    // line stays below, so the ~90% of pages with nothing happening still lead
+    // with the number this site is known for.
+    return (
+      <>
+        {ongoing.length > 0 ? (
+          <>
+            {band}
+            {verdict}
+          </>
+        ) : (
+          <>
+            {verdict}
+            {band}
+          </>
+        )}
+        <RenterTip grade={s.key} />
+        <PtHistory pt={s.pt} street={street.name} yearsDesc={yearsDesc} dataThrough={meta.data_through} />
+      </>
+    );
+  };
   const ptName: Record<string, string> = {};
   for (const s of servingPts) ptName[s.pt.slug] = s.pt.name;
   // Note-only address line for pages with NO finder (single-PT / no-blocks).

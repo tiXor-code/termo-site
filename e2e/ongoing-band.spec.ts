@@ -49,3 +49,31 @@ test('the band rides the block finder: it sits inside the selected PT panel', as
   const html = await page.content();
   expect(html).toContain('Restabilire estimată');
 });
+
+// The ordering rule is the whole point of hoisting: when the water is off right
+// now, the restore time must beat last year's total to the top of the page.
+// Measured before the change: the restore time rendered at y=904 against a
+// 900px fold, i.e. off screen, on the page most people reach from a search.
+test('an ongoing outage puts the band ABOVE the verdict card', async ({ page }) => {
+  test.skip(ONGOING === null, 'no ongoing interruption in the current bundle');
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(`/punct-termic/${ONGOING!.slug}`);
+
+  const band = page.getByRole('region', { name: 'Întreruperi în curs' });
+  const verdict = page.locator('.verdict').first();
+  const bandY = (await band.boundingBox())!.y;
+  const verdictY = (await verdict.boundingBox())!.y;
+  expect(bandY).toBeLessThan(verdictY);
+
+  // And the restore time itself must clear the fold, not merely the card.
+  const restore = band.locator('strong').first();
+  expect((await restore.boundingBox())!.y).toBeLessThan(900);
+});
+
+test('with nothing ongoing the verdict card still leads', async ({ page }) => {
+  test.skip(QUIET === null, 'every PT in the bundle has an ongoing interruption');
+  await page.goto(`/punct-termic/${QUIET!.slug}`);
+  const note = page.getByText(/Nicio întrerupere anunțată în curs/);
+  const verdict = page.locator('.verdict').first();
+  expect((await verdict.boundingBox())!.y).toBeLessThan((await note.boundingBox())!.y);
+});
