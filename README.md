@@ -65,3 +65,5 @@ Data reproduces public information published by CMTEB / Termoenergetica SA on cm
 Sector boundaries derive from OpenStreetMap ((c) OpenStreetMap contributors, ODbL). The
 git-scraping model follows [FlorinPopaCodes/termoficare-data](https://github.com/FlorinPopaCodes/termoficare-data)
 and [gov2-ro/prometeu](https://github.com/gov2-ro/prometeu).
+
+Code: [MIT](LICENSE).
