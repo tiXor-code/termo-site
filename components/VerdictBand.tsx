@@ -2,7 +2,7 @@
 // actually experience" answer. Matches the /tmp/strada.html mockup markup so
 // the contrast rules in globals.css apply: color goes on the big number, the
 // pill, the left border, and the YOU bar fill ONLY — never the label/value text.
-import Link from 'next/link';
+import Link from '@/components/Link';
 import { verdictFor, type Grade } from '@/lib/verdict';
 import { fmtInt, fmtZile } from '@/lib/format';
 

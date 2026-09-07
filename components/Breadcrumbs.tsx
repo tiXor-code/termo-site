@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/Link';
 import { JsonLd, breadcrumbJsonLd } from '@/lib/seo';
 
 export default function Breadcrumbs({

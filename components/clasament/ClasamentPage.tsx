@@ -1,5 +1,5 @@
 // Shared server renderer for the 3 yearless + 18 year clasament pages (Group B).
-import Link from 'next/link';
+import Link from '@/components/Link';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import MethodologyFootnote from '@/components/MethodologyFootnote';
 import RankingTable from '@/components/RankingTable';

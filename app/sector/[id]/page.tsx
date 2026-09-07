@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/Link';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import SectorSilhouetteMap from '@/components/SectorSilhouetteMap';
 import StatHero from '@/components/StatHero';
