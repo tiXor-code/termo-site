@@ -4,6 +4,7 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import CompareModule from '@/components/CompareModule';
 import EpisodeTable from '@/components/EpisodeTable';
 import MethodologyFootnote from '@/components/MethodologyFootnote';
+import OngoingBand from '@/components/OngoingBand';
 import OutageStrip from '@/components/OutageStrip';
 import StripLegend from '@/components/StripLegend';
 import StatRow from '@/components/StatRow';
@@ -18,6 +19,7 @@ import {
   type PtYear,
 } from '@/lib/data';
 import { fmtInt, fmtZile, yearLabel } from '@/lib/format';
+import { ongoingForPt } from '@/lib/pt-live';
 import { siteUrl } from '@/lib/seo';
 import { ptDescription, ptTitle } from '@/lib/seo-meta';
 
@@ -80,6 +82,11 @@ export default async function PunctTermicPage({
   const lcyData = pt.years[String(lcy)] ?? EMPTY_YEAR;
   const lcySummary = getYearSummary(lcy);
 
+  const ptOngoing = ongoingForPt(pt.years);
+  const OngoingBandEl = () => (
+    <OngoingBand ongoing={ptOngoing} dataThrough={meta.data_through} sector={pt.sector} />
+  );
+
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
       <Breadcrumbs
@@ -90,6 +97,10 @@ export default async function PunctTermicPage({
         ]}
       />
 
+      {/* Water off right now outranks last year's total. Same rule as the street
+          page: hoisted only when something is ongoing, so pages with nothing
+          happening still lead with the headline number. */}
+      {ptOngoing.length > 0 ? <OngoingBandEl /> : null}
       <VerdictBand
         scope="pt"
         days={lcyData.days}
@@ -99,6 +110,7 @@ export default async function PunctTermicPage({
         cityMedian={lcySummary.median_pt_days}
         partial={lcySummary.partial}
       />
+      {ptOngoing.length === 0 ? <OngoingBandEl /> : null}
 
       <h1 className="mt-6 font-display text-3xl font-bold">{pt.name}</h1>
       <p className="mt-3 max-w-2xl text-lg leading-snug">
