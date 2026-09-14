@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import Link from '@/components/Link';
 
 import { fmtDateRo, fmtDateTimeRo } from '@/lib/format';
 import { restoreQualifier, type OngoingEpisode } from '@/lib/pt-live';
