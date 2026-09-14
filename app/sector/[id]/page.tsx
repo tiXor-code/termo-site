@@ -99,8 +99,8 @@ export async function generateMetadata({
   const lcy = lastCompleteYear();
   const row = getSectoareRanking(lcy).find((r) => r.sector === Number(id));
   return {
-    title: `Apă caldă în Sectorul ${id} — avarii azi și istoric`,
-    description: `Avariile de apă caldă în curs în Sectorul ${id}, actualizate zilnic din anunțurile Termoenergetica, și istoricul complet: mediana de ${row ? fmtZile(row.median_days) : '?'} fără apă caldă în ${lcy}.`,
+    title: `Apă caldă Sectorul ${id}: avarii azi și istoric`,
+    description: `Avariile de apă caldă în curs în Sectorul ${id}, actualizate zilnic din anunțurile Termoenergetica, și istoricul: mediana de ${row ? fmtZile(row.median_days) : '?'} fără apă caldă în ${lcy}.`,
     alternates: { canonical: `/sector/${id}` },
   };
 }
