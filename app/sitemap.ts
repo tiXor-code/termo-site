@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import { getMeta, getPtAll, getStradaAll, lastCompleteYear } from '@/lib/data';
 import { siteUrl } from '@/lib/seo';
 import { lastRunDate, rankingLastmod } from '@/lib/sitemap-lastmod';
+import { getGuides } from '@/lib/ghid';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const meta = getMeta();
@@ -38,6 +39,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
   for (let s = 1; s <= 6; s++) add(`/sector/${s}`, dataThrough);
   add('/harta', dataThrough);
   add('/metodologie', dataThrough);
+  // Guides: listed only once one exists (the empty index is noindex); lastmod is the guide's own date.
+  const guides = getGuides();
+  if (guides.length) add('/ghid', guides[0].updated);
+  for (const g of guides) add(`/ghid/${g.slug}`, g.updated);
   add('/despre', dataThrough);
 
   return urls;

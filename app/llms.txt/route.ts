@@ -1,5 +1,6 @@
 import { getCitySummary, getMeta, getPtRanking, lastCompleteYear } from "@/lib/data";
 import { siteUrl } from "@/lib/seo";
+import { getGuides } from "@/lib/ghid";
 
 // /llms.txt - machine-readable site primer for AI crawlers/agents (GEO).
 // Statically generated at build time, so numbers refresh with every nightly
@@ -38,6 +39,9 @@ export async function GET() {
     `- [Hartă](${siteUrl("/harta")}): toate punctele termice, colorate după zilele cu întreruperi`,
     `- [Metodologie](${siteUrl("/metodologie")}): surse, reguli de numărare, limitări, verificări încrucișate (Wayback, PMB, ANRE)`,
     "",
+    ...(getGuides().length
+      ? ["## Ghiduri", "", ...getGuides().map((g) => `- [${g.title}](${siteUrl(`/ghid/${g.slug}`)}): ${g.description}`), ""]
+      : []),
     "## Definiția indicatorului",
     "",
     'O "zi cu întrerupere" = o zi calendaristică atinsă de cel puțin un episod de oprire a',
