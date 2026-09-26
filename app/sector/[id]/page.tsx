@@ -98,9 +98,14 @@ export async function generateMetadata({
   const { id } = await params;
   const lcy = lastCompleteYear();
   const row = getSectoareRanking(lcy).find((r) => r.sector === Number(id));
+  // Lead with the searcher's wording ("avarii apă caldă sector N"), name the
+  // source without implying affiliation, and quote only the restoration term
+  // Termoenergetica announced. ~154 chars with a two-digit median; the median
+  // sentence is dropped rather than rendering "?" if the ranking row is missing.
+  const median = row ? ` Mediana ${lcy}: ${fmtZile(row.median_days)} fără apă caldă.` : '';
   return {
     title: `Apă caldă Sectorul ${id}: avarii azi și istoric`,
-    description: `Avariile de apă caldă în curs în Sectorul ${id}, actualizate zilnic din anunțurile Termoenergetica, și istoricul: mediana de ${row ? fmtZile(row.median_days) : '?'} fără apă caldă în ${lcy}.`,
+    description: `Avarii apă caldă Sector ${id}, din anunțurile Termoenergetica, cu termenul de restabilire anunțat. Actualizat zilnic.${median}`,
     alternates: { canonical: `/sector/${id}` },
   };
 }
