@@ -1,0 +1,87 @@
+{
+  "slug": "harta-apa-calda-bucuresti",
+  "title": "Harta apei calde din București: cum o citești",
+  "description": "Două hărți, două întrebări: unde e oprită apa caldă acum (Termoenergetica) și care puncte termice stau cel mai des fără apă caldă (istoric).",
+  "updated": "2026-09-26",
+  "lead": "Când cauți o hartă a apei calde din București, de fapt pui una din două întrebări. Dacă vrei să știi unde e oprită apa caldă acum, harta și listele de pe pagina „Funcționare sistem termoficare” a Termoenergetica sunt sursa. Dacă vrei să știi cât de des rămâne fără apă caldă o zonă, harta punctelor termice de pe Fără Apă Caldă arată, pentru fiecare punct termic, zilele fără apă caldă pe an, reconstruite din anunțurile publice Termoenergetica din decembrie 2021. Suntem un proiect independent, nu Termoenergetica.",
+  "sections": [
+    {
+      "heading": "Două hărți pentru două întrebări",
+      "paragraphs": [
+        "Pe pagina „Funcționare sistem termoficare” de pe cmteb.ro, Termoenergetica are o „Hartă stare sistem termoficare București” și, sub ea, liste pe sectoare. Fiecare rând arată punctul termic, blocurile afectate, agentul termic afectat (ACC înseamnă apă caldă de consum), cauza intervenției și data și ora estimării punerii în funcțiune. Compania precizează că termenul afișat este estimat.",
+        "Harta de pe Fără Apă Caldă răspunde la altă întrebare: nu ce se întâmplă în acest moment, ci ce s-a întâmplat într-un an întreg. Fiecare punct de pe hartă este un punct termic. Culoarea și mărimea lui arată câte zile a stat fără apă caldă în anul ales. Implicit este afișat anul 2025.",
+        "Site-ul se reconstruiește o dată pe noapte, din aceleași anunțuri, așa că poate rămâne în urmă față de sursa oficială și nu știe mai mult decât ea. O avarie rezolvată recent poate apărea încă „în curs” pe paginile de sector până la următoarea actualizare."
+      ],
+      "bullets": [
+        "Apa e oprită acum la blocul meu? Pagina de funcționare a Termoenergetica.",
+        "Când revine apa? Doar termenul anunțat de Termoenergetica, care este o estimare.",
+        "Cât de des se oprește apa caldă în zona mea? Harta și clasamentele de pe Fără Apă Caldă."
+      ]
+    },
+    {
+      "heading": "Ce arată harta punctelor termice",
+      "paragraphs": [
+        "Termoenergetica raportează întreruperile pe punct termic, adică pe instalația care deservește un grup de blocuri. De aceea și harta e construită pe puncte termice, nu pe străzi. Coordonatele și registrul punctelor termice provin din harta oficială a rețelei. Universul de referință are 947 de puncte termice.",
+        "Un punct mare și închis la culoare înseamnă multe zile fără apă caldă în anul respectiv. Un punct mic și deschis înseamnă puține. O „zi cu întrerupere” este o zi calendaristică atinsă de cel puțin o oprire a apei calde, fie din avarie, fie din lucrare programată. Nu se adună duratele: o zi cu două opriri se numără o singură dată.",
+        "Harta are nevoie de JavaScript. Dacă nu se încarcă pe telefonul sau browserul tău, aceleași date sunt în clasamente, pe puncte termice, străzi și sectoare. Fundalul hărții vine de la OpenFreeMap și OpenMapTiles, cu date © contribuitorii OpenStreetMap."
+      ]
+    },
+    {
+      "heading": "Ce nu arată harta: presiunea și temperatura scăzută",
+      "paragraphs": [
+        "Harta este colorată doar după zilele de oprire. Deficiențele, adică presiunea sau temperatura scăzută, nu schimbă culoarea punctelor. Apa curge, dar e călduță sau abia curge, iar tehnic nu e „oprită”. Le numărăm separat, ca să nu umfle cifrele principale.",
+        "Diferența nu e mică. În 2025, punctele termice din București au adunat 26.559 de zile de oprire (punct termic × zi) și, separat, 15.786 de zile cu presiune sau temperatură scăzută. Iar 86% dintre zilele cu deficiențe au căzut în zile în care apa nu era oprită.",
+        "Consecința practică: 11 puncte termice au avut zero zile de oprire în 2025, dar au avut zile cu presiune sau temperatură scăzută. Pe hartă ele apar „curate”. Înainte să tragi o concluzie despre un bloc, deschide pagina punctului termic: acolo deficiențele apar ca al doilea număr."
+      ]
+    },
+    {
+      "heading": "Cum citești corect un punct mare",
+      "paragraphs": [
+        "Un punct mare nu înseamnă automat o rețea care se strică des. Contează de ce a fost oprită apa. În 2025, punctul termic cu cele mai multe zile fără apă caldă a fost Modul Toporași din Sectorul 5, cu 179 de zile. Doar una dintre ele a venit dintr-o avarie; 176 au venit din lucrări programate.",
+        "Alte puncte termice au opriri în mare parte din avarii. De exemplu, 3 Tineretului din Sectorul 4 a avut 90 de zile cu întreruperi în 2025, din care 77 din avarii și 13 din lucrări programate. Pe hartă cele două pot arăta asemănător; pe pagina fiecărui punct termic vezi împărțirea.",
+        "Avariile sunt defecțiuni neplanificate, cum ar fi spărturile și intervențiile de urgență. Lucrările programate sunt revizii și modernizări anunțate. Clasificarea vine din textul cauzei raportate de Termoenergetica, iar o mică parte dintre episoade rămâne neclasificată."
+      ],
+      "bullets": [
+        "Uită-te la mărimea punctului: câte zile fără apă caldă în anul ales.",
+        "Deschide punctul termic: câte zile din avarii, câte din lucrări programate.",
+        "Verifică deficiențele: apa călduță nu apare în culoarea hărții.",
+        "Compară cu alți ani: un an cu o revizie mare nu spune totul despre o zonă."
+      ]
+    },
+    {
+      "heading": "Harta pe sectoare: unde sunt diferențele",
+      "paragraphs": [
+        "La nivel de oraș, mediana a fost de 22 de zile fără apă caldă pe punct termic în 2025, iar 92% dintre punctele termice au fost afectate măcar o dată. Pe sectoare, mediana din 2025 a fost de 48 de zile în Sectorul 5, 32 în Sectorul 2, 29 în Sectorul 4, 25 în Sectorul 3, 17 în Sectorul 1 și 15 în Sectorul 6.",
+        "Valorile pe sector sunt indicative: sunt calculate pe toate punctele termice din sector, inclusiv pe cele fără nicio întrerupere. Pe hartă se vede de ce o singură cifră pe sector nu ajunge: în același sector pot sta alături puncte termice aproape curate și puncte termice cu luni întregi de opriri."
+      ]
+    },
+    {
+      "heading": "De la hartă la adresa ta, înainte de chirie",
+      "paragraphs": [
+        "Harta e bună pentru o privire de ansamblu. Pentru un apartament anume, caută strada sau punctul termic în căutarea din pagina principală. Căutarea după număr, de exemplu „Colentina 64”, alege dintre punctele termice care deservesc strada pe cel mai apropiat de adresă. Este o estimare după proximitate, nu o cartare oficială adresă–punct termic.",
+        "Citește atent cifra unei străzi. Zilele unei străzi sunt reuniunea zilelor tuturor punctelor termice care au listat-o în anunțuri. O arteră mare, deservită de multe puncte termice, ajunge ușor la un total mare, fără ca toată strada să fi stat fără apă caldă atâtea zile. Cea mai sigură cale e să afli de la proprietar sau de la asociația de proprietari de ce punct termic ține blocul și să deschizi pagina acelui punct termic."
+      ]
+    },
+    {
+      "heading": "Dacă blocul tău nu apare pe lista Termoenergetica",
+      "paragraphs": [
+        "Harta de istoric și paginile de sector arată doar ce a publicat Termoenergetica. Întreruperile neraportate nu există în datele noastre. Dacă nu ai apă caldă și adresa ta nu apare în listele publicate, Termoenergetica îți cere să te adresezi dispeceratelor de sector sau call-center-ului: TELVERDE 0800 820 002, apel gratuit, și 031 9442, ambele disponibile 24 de ore din 24, potrivit paginii de funcționare.",
+        "Tot pe acea pagină, compania prezintă aplicația de mobil TERMOALERT, gratuită pentru Android și iOS, prin care trimite notificări despre avariile și întreruperile din zona utilizatorului, motivul opririi și data preconizată pentru reluarea furnizării. Fără Apă Caldă nu trimite notificări și nu face prognoze: afișează doar termenul anunțat de Termoenergetica, marcat ca atare."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "title": "Termoenergetica București: Funcționare sistem termoficare",
+      "url": "https://www.cmteb.ro/functionare_sistem_termoficare.php"
+    }
+  ],
+  "related": [
+    { "label": "Harta punctelor termice", "href": "/harta" },
+    { "label": "Clasamentul punctelor termice", "href": "/clasament/puncte-termice" },
+    { "label": "Clasamente pe străzi, puncte termice și sectoare", "href": "/clasament" },
+    { "label": "Apă caldă Sectorul 5: avarii azi și istoric", "href": "/sector/5" },
+    { "label": "Metodologie: ce numărăm și ce nu", "href": "/metodologie" },
+    { "label": "Caută strada ta", "href": "/" }
+  ]
+}
