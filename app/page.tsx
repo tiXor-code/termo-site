@@ -20,9 +20,13 @@ import { fmtDateRo, fmtDec, fmtInt, fmtZile } from '@/lib/format';
 
 export const dynamic = 'error';
 
+// Absolute: the layout's `%s | Fără Apă Caldă` template does not apply within
+// the same route segment, so the brand suffix is written out here (60 chars).
+// "harta" queries are intentionally left to /harta (Site Brief v3).
 export const metadata: Metadata = {
+  title: { absolute: 'Întreruperi apă caldă București, pe străzi | Fără Apă Caldă' },
   description:
-    'Câte zile pe an stă strada ta fără apă caldă? Istoricul complet al întreruperilor din București, din 2021 până azi, plus avariile în curs. Actualizat zilnic.',
+    'Câte zile pe an stă strada ta fără apă caldă? Istoricul întreruperilor din București din 2021, din anunțurile publice Termoenergetica. Actualizat zilnic.',
   alternates: { canonical: '/' },
 };
 
