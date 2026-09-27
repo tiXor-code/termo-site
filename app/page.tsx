@@ -273,9 +273,10 @@ export default function HomePage() {
         <section>
           <h2 className="hairline-b pb-2 font-display text-2xl font-bold">În oraș</h2>
           <div className="mt-4">
+            {/* No "harta" wording here: /harta is the single page for map queries. */}
             <SectorSilhouetteMap
               values={sectorValues}
-              ariaLabel={`Harta sectoarelor — mediana zilelor fără apă caldă în ${lcy}`}
+              ariaLabel={`Sectoarele Bucureștiului — mediana zilelor fără apă caldă în ${lcy}`}
             />
           </div>
         </section>
@@ -288,7 +289,7 @@ export default function HomePage() {
         </div>
         <p className="mt-4 text-sm">
           <Link href="/harta" className="underline">
-            Vezi harta punctelor termice
+            Harta apei calde pe puncte termice, an cu an →
           </Link>
         </p>
       </section>
