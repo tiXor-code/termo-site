@@ -90,6 +90,31 @@ function statusSentence(sector: number, live: SectorLive, dataThrough: string): 
   return `La ${date}, în Sectorul ${sector} ${verb} ${fmtIntreruperi(n)} de apă caldă în curs${detail}.`;
 }
 
+/**
+ * Short status for the meta description. Same counts and cause wording as
+ * statusSentence, so the snippet never contradicts the page body; unclassified
+ * or planned episodes are never called "avarie".
+ */
+function metaStatus(live: SectorLive): string {
+  const n = live.ongoing.length;
+  if (n === 0) return 'nicio întrerupere anunțată în curs';
+  const avarii = live.ongoing.filter((o) => o.cause_class === 'avarie').length;
+  const programate = live.ongoing.filter((o) => o.cause_class === 'programat').length;
+  if (n === 1) {
+    if (avarii === 1) return 'o avarie în curs';
+    return programate === 1
+      ? 'o oprire programată în curs'
+      : 'o întrerupere în curs, cauză neprecizată în anunț';
+  }
+  if (avarii === n) return `${fmtIntreruperi(n)} în curs, toate din avarii`;
+  if (avarii === 0) {
+    return programate === n
+      ? `${fmtIntreruperi(n)} în curs, toate opriri programate`
+      : `${fmtIntreruperi(n)} în curs, niciuna anunțată ca avarie`;
+  }
+  return `${fmtIntreruperi(n)} în curs, dintre care ${avarii} din avarii`;
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -97,15 +122,31 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const lcy = lastCompleteYear();
-  const row = getSectoareRanking(lcy).find((r) => r.sector === Number(id));
-  // Lead with the searcher's wording ("avarii apă caldă sector N"), name the
-  // source without implying affiliation, and quote only the restoration term
-  // Termoenergetica announced. ~154 chars with a two-digit median; the median
-  // sentence is dropped rather than rendering "?" if the ranking row is missing.
-  const median = row ? ` Mediana ${lcy}: ${fmtZile(row.median_days)} fără apă caldă.` : '';
+  // Lead with the searcher's question ("avarie apă caldă sector N") and answer it
+  // with the dated status from the last nightly build (data_through), so the
+  // snippet never implies real-time data. Termoenergetica is named only as the
+  // source, and only its announced restoration term is mentioned — and only
+  // when something is actually ongoing. Candidates fall back to fit 160 chars.
+  const live = getSectorLive(Number(id), lcy);
+  const date = fmtDateRo(getMeta().data_through);
+  const lead = `Avarie la apa caldă în Sectorul ${id}? La ${date}: ${metaStatus(live)}`;
+  const candidates =
+    live.ongoing.length > 0
+      ? [
+          `${lead}, cu termenul de restabilire anunțat de Termoenergetica.`,
+          `${lead}. Sursa: anunțurile Termoenergetica.`,
+          `${lead}.`,
+        ]
+      : [
+          `${lead}. Istoric pe ani, din anunțurile Termoenergetica.`,
+          `${lead}. Sursa: anunțurile Termoenergetica.`,
+          `${lead}.`,
+        ];
+  const description =
+    candidates.find((c) => [...c].length <= 160) ?? candidates[candidates.length - 1];
   return {
     title: `Apă caldă Sectorul ${id}: avarii azi și istoric`,
-    description: `Avarii apă caldă Sector ${id}, din anunțurile Termoenergetica, cu termenul de restabilire anunțat. Actualizat zilnic.${median}`,
+    description,
     alternates: { canonical: `/sector/${id}` },
   };
 }
