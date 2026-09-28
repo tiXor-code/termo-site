@@ -225,6 +225,15 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
           : ''),
     },
     {
+      question: `Unde publică Termoenergetica avariile din Sectorul ${sector}?`,
+      answer:
+        `Termoenergetica anunță avariile și opririle programate pe site-ul propriu, cmteb.ro. ` +
+        `Pagina de față preia anunțurile o dată pe noapte și le păstrează doar pe cele care ` +
+        `privesc Sectorul ${sector}, grupate pe anunț, cu punctele termice afectate și termenul ` +
+        `estimat de restabilire. Pentru o avarie apărută în ultimele ore, verifică și anunțurile ` +
+        `oficiale de pe cmteb.ro — acolo apar înaintea acestei pagini.`,
+    },
+    {
       question: `Cât de des rămâne Sectorul ${sector} fără apă caldă?`,
       answer:
         `În ${lcy}, punctul termic median din Sectorul ${sector} a avut ${fmtZile(row.median_days)} ` +
@@ -258,7 +267,8 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
         {status} În ultimele 30 de zile, {fmtInt(live.ptsHit30d)} din {fmtInt(live.ptsTotal)}{' '}
         puncte termice din sector au avut cel puțin o întrerupere, iar în {lcy} punctul termic
         median din Sectorul {sector} a stat {fmtZile(row.median_days)} fără apă caldă. Mai
-        jos: situația de acum, cele mai afectate zone și evoluția pe ani.
+        jos: avariile și opririle anunțate de Termoenergetica, cele mai afectate zone și
+        evoluția pe ani.
       </p>
 
       <section className="mt-10">
