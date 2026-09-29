@@ -149,3 +149,47 @@ test("Escape still closes after a backdrop click moves focus away", async ({ pag
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog")).toHaveCount(0);
 });
+
+// "Shown once, ever." The case that used to harass was not the TTL: the marker
+// was only written on answer or dismiss, so a visitor who ignored the dialog
+// and closed the tab had nothing recorded and met it again on the next street
+// page, indefinitely.
+test('ignoring it, then visiting another answer page, does not bring it back', async ({ page }) => {
+  const posts: string[] = [];
+  await intercept(page, posts);
+  await openPoll(page, `/strada/${STREET.slug}`);
+
+  // Walk away without answering and without dismissing.
+  await page.clock.install();
+  await page.goto(`/punct-termic/${PT.slug}`);
+  await page.clock.fastForward(POLL_DELAY_MS + 1_000);
+
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  expect(posts).toHaveLength(0); // ignoring it must not record an answer
+});
+
+test('ignoring it, then reloading the same page, does not bring it back', async ({ page }) => {
+  await intercept(page);
+  await openPoll(page, `/strada/${STREET.slug}`);
+
+  await page.clock.install();
+  await page.reload();
+  await page.clock.fastForward(POLL_DELAY_MS + 1_000);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});
+
+// The old dismissed-record expired after 90 days and answered after 365. Any
+// record must now suppress permanently, including ones written before this fix.
+test('a legacy TTL-era record still suppresses, however old', async ({ page }) => {
+  await intercept(page);
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      'fac-app-poll',
+      JSON.stringify({ kind: 'dismissed', t: Date.parse('2020-01-01T00:00:00Z') }),
+    );
+  });
+  await page.clock.install();
+  await page.goto(`/strada/${STREET.slug}`);
+  await page.clock.fastForward(POLL_DELAY_MS + 1_000);
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+});
