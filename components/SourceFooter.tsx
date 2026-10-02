@@ -21,6 +21,25 @@ export default function SourceFooter() {
           activă („în curs") până la următoarea actualizare.
         </p>
         <p className="text-xs">Set de date generat la {fmtDateTimeRo(meta.generated_at)}.</p>
+        <p className="inline-flex items-center gap-2 pt-2 text-xs">
+          Realizat de
+          <a
+            href="https://ministerucreativ.ro/"
+            target="_blank"
+            rel="noopener nofollow"
+            className="group inline-flex rounded"
+          >
+            <img
+              src="/brand/ministeru-creativ.svg"
+              width={134}
+              height={16}
+              alt="Ministeru' Creativ"
+              loading="lazy"
+              decoding="async"
+              className="block h-4 w-auto opacity-80 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+            />
+          </a>
+        </p>
       </div>
     </footer>
   );
