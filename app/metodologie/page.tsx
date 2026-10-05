@@ -16,9 +16,9 @@ import { DEFICIENTA_GUARD_DAYS } from '@/lib/verdict';
 export const dynamic = 'error';
 
 export const metadata: Metadata = {
-  title: 'Metodologie — cum măsurăm întreruperile',
+  title: 'Metodologie: opriri și presiune scăzută la apa caldă',
   description:
-    'Cum reconstruim zilele fără apă caldă din București: surse, reconstrucția episoadelor, ce numărăm, limitări și verificări încrucișate.',
+    'Presiune sau temperatură scăzută la apa caldă în București: cum o separăm de opriri și câte zile au fost, din anunțurile publice Termoenergetica. Surse, limitări, verificări.',
   alternates: { canonical: '/metodologie' },
 };
 
@@ -92,6 +92,43 @@ export default function MetodologiePage() {
         arhivate independent din decembrie 2021 până la {fmtDateRo(meta.data_through)}. Mai jos:
         de unde vin datele, cum le transformăm în episoade și zile, și unde greșesc.
       </p>
+
+      <section id="presiune-scazuta" className="mt-12 border-t border-hairline pt-6">
+        <h2 className="font-display text-2xl font-bold">
+          Presiune scăzută la apa caldă în București: ce înseamnă în date
+        </h2>
+        <div className="mt-3 max-w-2xl space-y-3 leading-relaxed">
+          <p>
+            Pe scurt: când Termoenergetica anunță presiune sau temperatură scăzută la apa caldă,
+            este o <b>deficiență</b>, nu o oprire. Apa curge, dar slab sau călduță. O numărăm
+            separat și nu o adunăm niciodată la zilele fără apă caldă.
+          </p>
+          <p>
+            În {lcy}, punctele termice din București au adunat{' '}
+            <b>{fmtZile(lcyRow?.deficienta ?? 0)} cu presiune sau temperatură scăzută</b>, separat
+            de cele <b>{fmtZile(lcyRow?.headline ?? 0)} de oprire</b> (punct termic × zi). Sursa:
+            anunțurile publice Termoenergetica, date până la {fmtDateRo(meta.data_through)}.
+            Site-ul este independent, nu este afiliat cu Termoenergetica și nu știe mai mult decât
+            ce s-a anunțat.
+          </p>
+          <p>
+            Pentru adresa dumneavoastră, căutați strada pe{' '}
+            <Link href="/" className="underline">
+              pagina principală
+            </Link>
+            : paginile de stradă și de punct termic arată deficiențele ca al doilea număr, lângă
+            zilele de oprire. Comparația pe ani și zonele pe care le ascund deficiențele sunt{' '}
+            <a href="#deficiente" className="underline">
+              mai jos
+            </a>
+            ; punctele termice și străzile cele mai afectate, în{' '}
+            <Link href="/clasament" className="underline">
+              clasamente
+            </Link>
+            .
+          </p>
+        </div>
+      </section>
 
       <section id="surse" className="mt-12 border-t border-hairline pt-6">
         <h2 className="font-display text-2xl font-bold">Surse de date</h2>
