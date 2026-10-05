@@ -1,6 +1,6 @@
 // Title/description builders for detail pages (Group C owns this file).
 import type { PtEntity, StreetEntity } from '@/lib/data';
-import { fmtInt, fmtZile } from '@/lib/format';
+import { deFor, fmtInt, fmtZile } from '@/lib/format';
 import { deficientaDays } from '@/lib/deficienta';
 
 /**
@@ -103,11 +103,18 @@ export function streetTitle(street: StreetEntity): PageTitle {
   );
 }
 
+/**
+ * `ptDays` = last-complete-year outage days of each PT serving the street.
+ * When several PTs serve the street with different totals, the description
+ * leads with that per-PT range — the number the page body leads with — and not
+ * with the street-wide union, which the page itself labels misleading.
+ */
 export function streetDescription(
   street: StreetEntity,
   an: number,
   firstYear: number,
   lastYear: number,
+  ptDays: number[] = [],
 ): string {
   const istoric = `Istoric complet ${firstYear}–${lastYear}, pe punct termic.`;
   const y = street.years[String(an)];
@@ -128,6 +135,19 @@ export function streetDescription(
       `${street.name}: fără întreruperi de apă caldă înregistrate în ${an}. ${istoric}`,
       `${street.name}: fără întreruperi de apă caldă înregistrate în ${an}.`,
     ]);
+  }
+  if (ptDays.length > 1) {
+    const min = Math.min(...ptDays);
+    const max = Math.max(...ptDays);
+    if (min !== max) {
+      const n = ptDays.length;
+      const range = `între ${fmtInt(min)} și ${fmtZile(max)} fără apă caldă în ${an}, în funcție de punctul termic`;
+      return fitDescription([
+        `${street.name}: ${range} (${fmtInt(n)} ${deFor(n)}puncte termice). ${istoric}`,
+        `${street.name}: ${range}.`,
+        `${cutAtWord(street.name, 60)}: ${range}.`,
+      ]);
+    }
   }
   const avut = `a avut ${fmtInt(y.days)} zile cu întreruperi de apă caldă în ${an}, din care ${fmtInt(y.days_avarie)} din avarii`;
   return fitDescription([
