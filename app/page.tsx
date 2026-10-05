@@ -21,10 +21,12 @@ import { fmtDateRo, fmtDec, fmtInt, fmtZile } from '@/lib/format';
 export const dynamic = 'error';
 
 // Absolute: the layout's `%s | Fără Apă Caldă` template does not apply within
-// the same route segment, so the brand suffix is written out here (60 chars).
-// "harta" queries are intentionally left to /harta (Site Brief v3).
+// the same route segment, so the brand suffix is written out here (59 chars).
+// Leads with "Apă caldă București" for the city-wide queries ("apa calda",
+// "apa calda bucuresti"). "harta" queries are intentionally left to /harta
+// (Site Brief v4); / only links there.
 export const metadata: Metadata = {
-  title: { absolute: 'Întreruperi apă caldă București, pe străzi | Fără Apă Caldă' },
+  title: { absolute: 'Apă caldă București: întreruperi pe străzi | Fără Apă Caldă' },
   description:
     'Câte zile pe an stă strada ta fără apă caldă? Istoricul întreruperilor din București din 2021, din anunțurile publice Termoenergetica. Actualizat zilnic.',
   alternates: { canonical: '/' },
@@ -37,6 +39,8 @@ const HERO_CHIPS: { slug: string; name: string }[] = [
   { slug: 'cal-vitan', name: 'Calea Vitan' },
   { slug: 'bld-lacul-tei', name: 'Bulevardul Tei' },
 ];
+
+const SECTOR_IDS = [1, 2, 3, 4, 5, 6];
 
 export default function HomePage() {
   const meta = getMeta();
@@ -91,6 +95,61 @@ export default function HomePage() {
           ))}
         </div>
       </header>
+
+      {/* ===== Apă caldă în București: indexable intro =====
+          Deliberately NOT data-nosnippet and deliberately number-free: the
+          numeric blocks below stay out of snippets, this prose is the text
+          Google and answer engines can quote for city-wide queries. */}
+      <section className="section border-t border-hairline py-10">
+        <h2 className="font-display text-2xl font-bold">Apă caldă în București: ce găsești aici</h2>
+        <p className="mt-3 max-w-2xl">
+          Fără Apă Caldă arată câte zile pe an a stat fiecare stradă, punct termic și sector din
+          București fără apă caldă. Istoricul e reconstruit din anunțurile publice Termoenergetica,
+          arhivate din decembrie 2021, și se actualizează în fiecare noapte. Suntem un proiect
+          independent, nu Termoenergetica, CMTEB sau Primăria.
+        </p>
+        <ul className="mt-4 max-w-2xl list-disc space-y-2 pl-5">
+          <li>
+            <b>Avarii azi în sectorul tău:</b>{' '}
+            {SECTOR_IDS.map((id, i) => (
+              <span key={id}>
+                {i > 0 ? ', ' : ''}
+                <Link href={`/sector/${id}`} className="underline">
+                  Sector {id}
+                </Link>
+              </span>
+            ))}
+            . Vezi avariile în curs și termenul anunțat de Termoenergetica, marcat ca atare. Pentru
+            situația exactă din acest moment, sursa rămâne Termoenergetica.
+          </li>
+          <li>
+            <b>Istoricul unei adrese:</b> caută strada sau punctul termic mai sus, înainte să semnezi
+            chiria sau să cumperi.
+          </li>
+          <li>
+            <b>Pe hartă:</b>{' '}
+            <Link href="/harta" className="underline">
+              harta punctelor termice
+            </Link>{' '}
+            arată zilele fără apă caldă din fiecare an.
+          </li>
+          <li>
+            <b>Opriri, nu presiune scăzută:</b> cifrele principale numără doar opririle; presiunea
+            și temperatura scăzută sunt numărate separat (
+            <Link href="/metodologie#deficiente" className="underline">
+              metodologie
+            </Link>
+            ).
+          </li>
+          <li>
+            <b>Pe scurt, pas cu pas:</b>{' '}
+            <Link href="/ghid/apa-calda" className="underline">
+              ghidul apei calde în București
+            </Link>{' '}
+            — unde vezi anunțul, când revine apa, cum citești cifrele.
+          </li>
+        </ul>
+      </section>
 
       {/* ===== Cum stă Bucureștiul ===== */}
       <section className="section border-t border-hairline py-12">
