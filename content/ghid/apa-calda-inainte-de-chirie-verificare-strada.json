@@ -2,7 +2,7 @@
   "slug": "apa-calda-inainte-de-chirie-verificare-strada",
   "title": "Verifică apa caldă pe stradă înainte de chirie",
   "description": "Cum verifici istoricul apei calde pe strada și blocul tău înainte de chirie: pașii, cum citești cifrele și ce întrebi proprietarul.",
-  "updated": "2026-09-28",
+  "updated": "2026-10-05",
   "lead": "Înainte să semnezi chiria, caută adresa pe Fără Apă Caldă, alege blocul, nu doar strada, și uită-te la ultimii ani: câte zile fără apă caldă, câte din avarii, câte din lucrări programate și câte zile cu presiune sau temperatură scăzută. Compară cifra cu mediana orașului, de 22 de zile pe punct termic în 2025. Datele sunt reconstruite din anunțurile publice Termoenergetica, arhivate din decembrie 2021, și se actualizează o dată pe noapte.",
   "sections": [
     {
@@ -30,7 +30,7 @@
       "heading": "Cum citești cifrele: avarii, lucrări, deficiențe",
       "paragraphs": [
         "O zi cu întrerupere este o zi calendaristică atinsă de cel puțin o oprire a apei calde, fie avarie, fie lucrare programată. Avariile sunt defecțiuni neplanificate, cum ar fi spărturile sau intervențiile de urgență. Lucrările programate sunt revizii și modernizări anunțate. Clasificarea vine din textul cauzei raportate de Termoenergetica.",
-        "Pentru o chirie, diferența contează. O lucrare lungă poate umfla un singur an: strada Toporași a avut 193 de zile cu întreruperi în 2025, dar doar 30 din avarii. Avariile care revin an de an sunt semnalul de urmărit. Pagina de stradă o spune direct: dacă vezi avarii repetate, întreabă proprietarul dacă apartamentul are centrală proprie.",
+        "Pentru o chirie contează și avariile, și lucrările programate. Pe strada Toporași, blocurile alimentate de PT Modul Toporași au stat fără apă caldă 237 de zile în 2022, 190 în 2023 și 179 în 2025, aproape toate din lucrări programate (176 din cele 179 de zile din 2025). Opririle programate lungi care revin an de an înseamnă luni fără apă caldă, la fel ca avariile repetate. Pe aceeași stradă, blocurile de la PT 6 Farado au avut 53 de zile în 2025, așa că alege blocul exact pe pagina străzii. Dacă vezi opriri lungi sau avarii repetate, întreabă proprietarul dacă apartamentul are centrală proprie.",
         "Deficiențele, adică presiunea sau temperatura scăzută, se numără separat și nu intră în cifra mare. Apa călduță sau care abia curge nu e tehnic oprită, așa că pagina le arată ca al doilea număr. La PT 10 Vitan, de exemplu, în 2025 au fost 13 zile de oprire și, separat, 13 zile cu deficiențe. Dacă o zonă adună cel puțin 30 de zile cu deficiențe într-un an, verdictul ei nu mai poate fi „Curat”, chiar dacă opririle sunt puține."
       ]
     },
