@@ -24,7 +24,7 @@ import {
   type PtEntity,
   type StreetYear,
 } from '@/lib/data';
-import { fmtInt, fmtZile, yearLabel } from '@/lib/format';
+import { deFor, fmtDateRo, fmtInt, fmtZile, yearLabel } from '@/lib/format';
 import { siteUrl } from '@/lib/seo';
 import { deficientaDays } from '@/lib/deficienta';
 import { ongoingForPt } from '@/lib/pt-live';
@@ -54,9 +54,16 @@ export async function generateMetadata({
   // them so we don't flood the index with thin/estimated pages; still findable
   // via on-site search.
   const noData = Object.keys(street.years).length === 0;
+  // Per-PT days for the description, so it leads with the same per-PT range
+  // as the page body instead of the street-wide union.
+  const ptAll = getPtAll();
+  const ptDays = street.pts
+    .map((ptSlug) => ptAll.get(ptSlug))
+    .filter((pt): pt is PtEntity => pt !== undefined)
+    .map((pt) => pt.years[String(lcy)]?.days ?? 0);
   return {
     title: streetTitle(street),
-    description: streetDescription(street, lcy, firstYear, lastYear),
+    description: streetDescription(street, lcy, firstYear, lastYear, ptDays),
     alternates: { canonical: `/strada/${slug}` },
     openGraph: { images: [siteUrl(`/og/${slug}`)] },
     ...(noData ? { robots: { index: false, follow: true } } : {}),
@@ -248,7 +255,17 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
         ]}
       />
       <h1 className="mt-6 font-display text-3xl font-bold">{street.name}</h1>
-      <p className="mt-1 text-sm text-ink-soft">{sectorsPhrase(street.sectors)} · București</p>
+      <p className="mt-1 text-sm text-ink-soft">
+        {sectorsPhrase(street.sectors)} · București
+        {street.sectors.map((sector) => (
+          <span key={sector}>
+            {' · '}
+            <Link href={`/sector/${sector}`} className="underline underline-offset-2">
+              avarii azi în Sectorul {sector}
+            </Link>
+          </span>
+        ))}
+      </p>
     </>
   );
 
@@ -497,6 +514,11 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
   const daysList = servingPts.map((s) => s.days);
   const spreadMin = Math.min(...daysList);
   const spreadMax = Math.max(...daysList);
+  const nPts = servingPts.length;
+  // How many serving PTs are still flagged ongoing in the last snapshot. Same
+  // source as each PT's OngoingBand (deficiencies excluded); never a restore time.
+  const ongoingPts = servingPts.filter((s) => ongoingForPt(s.pt.years).length > 0).length;
+  const lastUpdate = fmtDateRo(meta.data_through);
 
   const finderPts: BlockFinderPt[] = servingPts.map((s) => ({
     ptSlug: s.pt.slug,
@@ -510,12 +532,41 @@ export default async function StradaPage({ params }: { params: Promise<{ slug: s
     <main className="mx-auto max-w-3xl px-4 py-10">
       {head}
 
-      {spreadMin !== spreadMax && (
-        <p className="range mt-4">
-          Pe toată strada, în {lcy}, situația a variat între <b>{fmtInt(spreadMin)}</b> și{' '}
-          <b>{fmtZile(spreadMax)}</b> fără apă caldă, în funcție de zonă.
-        </p>
-      )}
+      {/* Direct answer first: per-PT range, city median and today's status,
+          before the block selector. Numbers are the same ones the panels show. */}
+      <p className="range mt-4 max-w-2xl">
+        {street.name} e deservită de {fmtInt(nPts)} {deFor(nPts)}puncte termice.{' '}
+        {spreadMin !== spreadMax ? (
+          <>
+            În {yearLabel(lcy, meta)}, blocurile de aici au stat între <b>{fmtInt(spreadMin)}</b> și{' '}
+            <b>{fmtZile(spreadMax)}</b> fără apă caldă, în funcție de punctul termic
+          </>
+        ) : (
+          <>
+            În {yearLabel(lcy, meta)}, fiecare a avut <b>{fmtZile(spreadMax)}</b> fără apă caldă
+          </>
+        )}{' '}
+        (mediana orașului: {fmtZile(Math.round(cityMedian))}).{' '}
+        {ongoingPts > 0 ? (
+          <>
+            La ultima actualizare ({lastUpdate}),{' '}
+            {ongoingPts === 1
+              ? 'unul dintre ele avea'
+              : `${fmtInt(ongoingPts)} dintre ele aveau`}{' '}
+            o întrerupere anunțată în curs — alege blocul mai jos pentru cauză și termenul anunțat
+            de Termoenergetica.
+          </>
+        ) : (
+          <>La ultima actualizare ({lastUpdate}), nicio întrerupere anunțată în curs.</>
+        )}
+      </p>
+      <p className="mt-1 max-w-2xl text-xs text-ink-soft">
+        Sursa: anunțurile publice Termoenergetica, arhivate zilnic din decembrie 2021 (proiect
+        independent, neoficial). Zilele cu presiune sau temperatură scăzută nu sunt incluse.{' '}
+        <Link href="/metodologie" className="underline underline-offset-2">
+          Metodologie
+        </Link>
+      </p>
 
       <BlockFinder
         blocks={blocks}
