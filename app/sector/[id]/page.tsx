@@ -122,14 +122,20 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const lcy = lastCompleteYear();
-  // Lead with the searcher's question ("avarie apă caldă sector N") and answer it
-  // with the dated status from the last nightly build (data_through), so the
-  // snippet never implies real-time data. Termoenergetica is named only as the
-  // source, and only its announced restoration term is mentioned — and only
-  // when something is actually ongoing. Candidates fall back to fit 160 chars.
+  // Lead with the searcher's own wording ("avarii apă caldă [sector N]") and answer
+  // it with the dated status from the last nightly build (data_through), so the
+  // snippet never implies real-time data. "Avarii de apă caldă" is only a topic
+  // label; the status after it keeps metaStatus' cause wording, so planned or
+  // unclassified outages are never called "avarie". Termoenergetica is named only
+  // as the source, and only its announced restoration term is mentioned — and
+  // only when something is actually ongoing. The archive start year comes from
+  // the data bundle (first bar in "Evoluție pe ani"), never hardcoded.
+  // Candidates fall back to fit 160 chars.
+  const meta = getMeta();
   const live = getSectorLive(Number(id), lcy);
-  const date = fmtDateRo(getMeta().data_through);
-  const lead = `Avarie la apa caldă în Sectorul ${id}? La ${date}: ${metaStatus(live)}`;
+  const date = fmtDateRo(meta.data_through);
+  const firstYear = meta.years[0];
+  const lead = `Avarii de apă caldă în Sectorul ${id}: la ${date}, ${metaStatus(live)}`;
   const candidates =
     live.ongoing.length > 0
       ? [
@@ -138,6 +144,7 @@ export async function generateMetadata({
           `${lead}.`,
         ]
       : [
+          `${lead}. Istoric din ${firstYear}, din anunțurile Termoenergetica.`,
           `${lead}. Istoric pe ani, din anunțurile Termoenergetica.`,
           `${lead}. Sursa: anunțurile Termoenergetica.`,
           `${lead}.`,
