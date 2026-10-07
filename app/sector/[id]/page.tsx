@@ -256,9 +256,16 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
       <Breadcrumbs items={crumbs} />
+      {/* H1 mirrors the title pattern from the Site Brief ("avarii azi și istoric").
+          "azi" is a topic label; the dated line below says how fresh the data is. */}
       <h1 className="mt-6 font-display text-3xl font-bold">
-        Apă caldă în Sectorul {sector}
+        Apă caldă în Sectorul {sector}: avarii azi și istoric
       </h1>
+      <p className="mt-2 text-sm text-ink-soft">
+        Ultima actualizare:{' '}
+        <time dateTime={meta.data_through}>{fmtDateRo(meta.data_through)}</time>, din anunțurile
+        publice Termoenergetica. Proiect independent, neafiliat cu Termoenergetica sau PMB.
+      </p>
 
       {/* Answer-first: current status + 30-day pulse + historical baseline. */}
       <p className="mt-4 max-w-2xl leading-relaxed">
@@ -270,7 +277,7 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
 
       <section className="mt-10">
         <h2 className="hairline-b pb-2 font-display text-xl font-bold">
-          Este oprită apa caldă acum în Sectorul {sector}?
+          Este oprită apa caldă azi în Sectorul {sector}?
         </h2>
         {live.ongoing.length > 0 ? (
           <>
