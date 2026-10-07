@@ -1,0 +1,78 @@
+{
+  "slug": "de-cine-apartine-termoenergetica",
+  "title": "De cine aparține Termoenergetica București",
+  "description": "Cine deține Termoenergetica București (CMTEB), cum a preluat activitatea RADET și ce rol are ELCEN. Pe scurt, cu sursele citate.",
+  "updated": "2026-10-07",
+  "lead": "Termoenergetica București, cu numele complet Compania Municipală Termoenergetica București S.A. (CMTEB), aparține aproape în întregime Municipiului București. Potrivit Wikipedia, Municipiul București deține 99,999% din acțiuni, iar Comuna Chiajna și Orașul Popești-Leordeni au câte 131 de acțiuni. Compania a fost înființată în 2019 și a preluat activitatea fostei regii RADET. Fără Apă Caldă nu face parte din această structură: este un proiect independent care arhivează anunțurile publice ale companiei.",
+  "sections": [
+    {
+      "heading": "Cine sunt acționarii Termoenergetica",
+      "paragraphs": [
+        "Termoenergetica este o societate pe acțiuni, nu o regie autonomă. Pagina Wikipedia a companiei o listează la categoria companiilor de stat din România și indică drept proprietar Municipiul București, cu 99,999% din acțiuni.",
+        "Restul, o fracțiune simbolică, este împărțit între două unități administrative din județul Ilfov. Practic, decizia la nivel de acționar aparține capitalei. Numele oficial spune același lucru: este o companie „municipală”."
+      ],
+      "bullets": [
+        "Municipiul București: 99,999% din acțiuni",
+        "Comuna Chiajna: 131 de acțiuni",
+        "Orașul Popești-Leordeni: 131 de acțiuni"
+      ]
+    },
+    {
+      "heading": "De la RADET la Termoenergetica",
+      "paragraphs": [
+        "Înainte de 2019, termoficarea din București era operată de Regia Autonomă de Distribuție a Energiei Termice (RADET). Regia se afla, administrativ, în subordinea Consiliului General al Municipiului București.",
+        "RADET a acumulat datorii de aproximativ 3,83 miliarde de lei către ELCEN, producătorul de energie termică, care a intrat la rândul lui în insolvență din cauza blocajului financiar. Pe 11 noiembrie 2019, Curtea de Apel București a decis definitiv intrarea RADET în faliment.",
+        "De la 1 decembrie 2019, Compania Municipală Termoenergetica București S.A. a preluat oficial activitatea RADET. Proprietarul a rămas, în esență, același: municipalitatea. S-a schimbat forma juridică, din regie în societate pe acțiuni."
+      ]
+    },
+    {
+      "heading": "Cine produce căldura și cine o transportă",
+      "paragraphs": [
+        "Termoenergetica nu este singurul actor din sistem. Potrivit Wikipedia, compania administrează rețeaua de transport și distribuție a agentului termic și asigură încălzirea centralizată și apa caldă, dar cooperează cu Electrocentrale București (ELCEN) pentru a alimenta rețeaua.",
+        "ELCEN este o companie separată. Wikipedia o descrie drept companie cu capital integral de stat, cu Ministerul Energiei drept companie-părinte, și listează patru centrale în București: CTE București Sud, CET București Vest, CET Progresu și CET Grozăvești.",
+        "Pe scurt: rețeaua și punctele termice sunt ale companiei municipale, iar o mare parte din căldura care intră în rețea vine de la un producător aflat la nivel de stat. Când apa caldă lipsește, cauza poate fi în oricare dintre verigi, iar anunțul public spune de obicei unde."
+      ]
+    },
+    {
+      "heading": "Unde anunță Termoenergetica avariile",
+      "paragraphs": [
+        "Compania publică pe site-ul propriu o pagină de funcționare a sistemului de termoficare. Acolo listează, pe sectoare, punctele termice afectate, blocurile deservite, tipul de agent termic oprit, cauza intervenției și data estimată a punerii în funcțiune.",
+        "Pe aceeași pagină, compania prezintă aplicația de mobil TERMOALERT, gratuită pentru Android și iOS, prin care spune că trimite notificări despre avariile și întreruperile din zona utilizatorului, motivul opririi și data preconizată pentru reluarea furnizării.",
+        "Data de pe pagina de funcționare este o estimare a companiei, nu o garanție. Fără Apă Caldă o afișează doar ca termen anunțat de Termoenergetica, marcat ca atare."
+      ]
+    },
+    {
+      "heading": "Cine răspunde când nu e apă caldă la parametri",
+      "paragraphs": [
+        "Ca furnizor, Termoenergetica răspunde față de clienți pentru condițiile contractului. În februarie 2025, potrivit Wikipedia, Autoritatea Națională pentru Protecția Consumatorilor (ANPC) a amendat compania pentru nerespectarea condițiilor contractului de furnizare a energiei termice, inclusiv menținerea temperaturii apei calde între 55 și 60 de grade.",
+        "Asta e o diferență utilă de reținut: apa călduță sau cu presiune mică nu este același lucru cu apa oprită. Pe Fără Apă Caldă, presiunea și temperatura scăzută se numără separat de opriri și nu intră în cifrele principale."
+      ]
+    },
+    {
+      "heading": "Unde se află Fără Apă Caldă în toată povestea",
+      "paragraphs": [
+        "Nicăieri în structura de proprietate. Fără Apă Caldă este un proiect independent, fără nicio afiliere cu Termoenergetica, CMTEB sau Primăria Municipiului București. Nu știe mai mult decât ce a anunțat compania.",
+        "Sursa site-ului este pagina publică de funcționare a Termoenergetica, arhivată automat începând cu 19 decembrie 2021. Din aceste anunțuri, site-ul reconstruiește istoricul pentru 947 de puncte termice și îl face căutabil pe stradă, punct termic și sector. Datele se actualizează o dată pe noapte.",
+        "Un exemplu de ce se poate vedea așa: în 2025, punctele termice din București au adunat 26.559 de zile de oprire (punct termic × zi) și, separat, 15.786 de zile cu presiune sau temperatură scăzută. Metodologia explică fiecare pas, iar cifrele se pot reproduce."
+      ],
+      "bullets": [
+        "Verifici o adresă înainte de chirie: caută strada pe pagina principală",
+        "Compari zone: clasamentele pe străzi, puncte termice și sectoare",
+        "Vezi orașul dintr-o privire: harta punctelor termice"
+      ]
+    }
+  ],
+  "sources": [
+    { "title": "Termoenergetica – Wikipedia", "url": "https://ro.wikipedia.org/wiki/Termoenergetica" },
+    { "title": "RADET – Wikipedia", "url": "https://ro.wikipedia.org/wiki/RADET" },
+    { "title": "Electrocentrale București – Wikipedia", "url": "https://ro.wikipedia.org/wiki/Electrocentrale_Bucure%C8%99ti" },
+    { "title": "CMTEB – Funcționare sistem termoficare", "url": "https://www.cmteb.ro/functionare_sistem_termoficare.php" }
+  ],
+  "related": [
+    { "label": "Despre proiect și independență", "href": "/despre" },
+    { "label": "Metodologie: ce numărăm și ce nu", "href": "/metodologie" },
+    { "label": "Ghidul apei calde în București", "href": "/ghid/apa-calda" },
+    { "label": "Harta punctelor termice", "href": "/harta" },
+    { "label": "Clasamente", "href": "/clasament" }
+  ]
+}
