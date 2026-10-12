@@ -90,6 +90,31 @@ function statusSentence(sector: number, live: SectorLive, dataThrough: string): 
   return `La ${date}, în Sectorul ${sector} ${verb} ${fmtIntreruperi(n)} de apă caldă în curs${detail}.`;
 }
 
+/**
+ * Short status for the meta description. Same counts and cause wording as
+ * statusSentence, so the snippet never contradicts the page body; unclassified
+ * or planned episodes are never called "avarie".
+ */
+function metaStatus(live: SectorLive): string {
+  const n = live.ongoing.length;
+  if (n === 0) return 'nicio întrerupere anunțată în curs';
+  const avarii = live.ongoing.filter((o) => o.cause_class === 'avarie').length;
+  const programate = live.ongoing.filter((o) => o.cause_class === 'programat').length;
+  if (n === 1) {
+    if (avarii === 1) return 'o avarie în curs';
+    return programate === 1
+      ? 'o oprire programată în curs'
+      : 'o întrerupere în curs, cauză neprecizată în anunț';
+  }
+  if (avarii === n) return `${fmtIntreruperi(n)} în curs, toate din avarii`;
+  if (avarii === 0) {
+    return programate === n
+      ? `${fmtIntreruperi(n)} în curs, toate opriri programate`
+      : `${fmtIntreruperi(n)} în curs, niciuna anunțată ca avarie`;
+  }
+  return `${fmtIntreruperi(n)} în curs, dintre care ${avarii} din avarii`;
+}
+
 export async function generateMetadata({
   params,
 }: {
@@ -97,10 +122,38 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const lcy = lastCompleteYear();
-  const row = getSectoareRanking(lcy).find((r) => r.sector === Number(id));
+  // Lead with the searcher's own wording ("avarii apă caldă [sector N]") and answer
+  // it with the dated status from the last nightly build (data_through), so the
+  // snippet never implies real-time data. "Avarii de apă caldă" is only a topic
+  // label; the status after it keeps metaStatus' cause wording, so planned or
+  // unclassified outages are never called "avarie". Termoenergetica is named only
+  // as the source, and only its announced restoration term is mentioned — and
+  // only when something is actually ongoing. The archive start year comes from
+  // the data bundle (first bar in "Evoluție pe ani"), never hardcoded.
+  // Candidates fall back to fit 160 chars.
+  const meta = getMeta();
+  const live = getSectorLive(Number(id), lcy);
+  const date = fmtDateRo(meta.data_through);
+  const firstYear = meta.years[0];
+  const lead = `Avarii de apă caldă în Sectorul ${id}: la ${date}, ${metaStatus(live)}`;
+  const candidates =
+    live.ongoing.length > 0
+      ? [
+          `${lead}, cu termenul de restabilire anunțat de Termoenergetica.`,
+          `${lead}. Sursa: anunțurile Termoenergetica.`,
+          `${lead}.`,
+        ]
+      : [
+          `${lead}. Istoric din ${firstYear}, din anunțurile Termoenergetica.`,
+          `${lead}. Istoric pe ani, din anunțurile Termoenergetica.`,
+          `${lead}. Sursa: anunțurile Termoenergetica.`,
+          `${lead}.`,
+        ];
+  const description =
+    candidates.find((c) => [...c].length <= 160) ?? candidates[candidates.length - 1];
   return {
     title: `Apă caldă Sectorul ${id}: avarii azi și istoric`,
-    description: `Avariile de apă caldă în curs în Sectorul ${id}, actualizate zilnic din anunțurile Termoenergetica, și istoricul: mediana de ${row ? fmtZile(row.median_days) : '?'} fără apă caldă în ${lcy}.`,
+    description,
     alternates: { canonical: `/sector/${id}` },
   };
 }
@@ -203,9 +256,16 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
       <Breadcrumbs items={crumbs} />
+      {/* H1 mirrors the title pattern from the Site Brief ("avarii azi și istoric").
+          "azi" is a topic label; the dated line below says how fresh the data is. */}
       <h1 className="mt-6 font-display text-3xl font-bold">
-        Apă caldă în Sectorul {sector}
+        Apă caldă în Sectorul {sector}: avarii azi și istoric
       </h1>
+      <p className="mt-2 text-sm text-ink-soft">
+        Ultima actualizare:{' '}
+        <time dateTime={meta.data_through}>{fmtDateRo(meta.data_through)}</time>, din anunțurile
+        publice Termoenergetica. Proiect independent, neafiliat cu Termoenergetica sau PMB.
+      </p>
 
       {/* Answer-first: current status + 30-day pulse + historical baseline. */}
       <p className="mt-4 max-w-2xl leading-relaxed">
@@ -217,7 +277,7 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
 
       <section className="mt-10">
         <h2 className="hairline-b pb-2 font-display text-xl font-bold">
-          Este oprită apa caldă acum în Sectorul {sector}?
+          Este oprită apa caldă azi în Sectorul {sector}?
         </h2>
         {live.ongoing.length > 0 ? (
           <>

@@ -18,8 +18,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 // Answers are written in two steps against one nonce-keyed row, so tapping
 // "Da" and then closing still counts as a "Da".
 const STORAGE_KEY = "fac-app-poll";
-const SUPPRESS_ANSWERED_MS = 365 * 24 * 3600 * 1000;
-const SUPPRESS_DISMISSED_MS = 90 * 24 * 3600 * 1000;
 // Overridable so the e2e build can push the modal out of reach of specs that
 // merely happen to visit a street page (see playwright.config.ts).
 const DELAY_MS = Number(process.env.NEXT_PUBLIC_APP_POLL_DELAY_MS) || 3_000;
@@ -31,23 +29,44 @@ const ENABLED = process.env.NEXT_PUBLIC_APP_POLL !== "0";
 
 type Stage = "interest" | "platform" | "done";
 
+// Shown at most ONCE per browser, ever.
+//
+// Three things used to bring it back, and the third was the bad one:
+//   1. answered   -> returned after 365 days
+//   2. dismissed  -> returned after 90 days
+//   3. SHOWN BUT IGNORED -> nothing was recorded at all, because the marker was
+//      only written on answer or dismiss. Close the tab on it and it came back
+//      on the next street page, forever. That is the harassing case.
+//
+// So the marker is written the moment the dialog OPENS, and any marker
+// suppresses it permanently. Deliberate trade: someone who never really saw it
+// loses the chance to answer. Not asking twice is worth more than one response.
+//
+// Legacy {kind,t} records from the TTL era still suppress, since only the
+// presence of a record is checked now.
+
+// Fallback for private mode / blocked storage, where the write silently fails.
+// Module state survives client-side navigation, so it at least stops the
+// dialog reappearing on every street page within one browsing session. A full
+// reload with storage blocked can still show it once more; doing better would
+// need a cookie or server-side identity, which is worse for a civic site.
+let shownThisSession = false;
+
 function suppressed(): boolean {
+  if (shownThisSession) return true;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return false;
-    const { kind, t } = JSON.parse(raw) as { kind: string; t: number };
-    const ttl = kind === "dismissed" ? SUPPRESS_DISMISSED_MS : SUPPRESS_ANSWERED_MS;
-    return Date.now() - t < ttl;
+    return localStorage.getItem(STORAGE_KEY) !== null;
   } catch {
     return false;
   }
 }
 
-function remember(kind: "answered" | "dismissed") {
+function remember(kind: "shown" | "answered" | "dismissed") {
+  shownThisSession = true;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ kind, t: Date.now() }));
   } catch {
-    /* private mode etc. - fine */
+    /* private mode etc. - the module flag carries the session */
   }
 }
 
@@ -73,7 +92,11 @@ export default function AppPollModal() {
 
   useEffect(() => {
     if (!ENABLED || !onAnswerPage || suppressed()) return;
-    const id = setTimeout(() => setOpen(true), DELAY_MS);
+    const id = setTimeout(() => {
+      // Record BEFORE showing, so an ignored dialog still counts as shown.
+      remember("shown");
+      setOpen(true);
+    }, DELAY_MS);
     return () => clearTimeout(id);
   }, [onAnswerPage, pathname]);
 

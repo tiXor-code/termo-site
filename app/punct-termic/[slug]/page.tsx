@@ -136,6 +136,15 @@ export default async function PunctTermicPage({
           </>
         )}
       </p>
+      {/* Descriptive in-content link to the sector page (the breadcrumb was the
+          only link), so sector "azi" queries get a clear internal signal. */}
+      <p className="mt-3 max-w-2xl text-sm">
+        <Link href={`/sector/${pt.sector}`} className="underline">
+          Avarii de apă caldă azi în Sectorul {pt.sector}
+        </Link>{' '}
+        — toate întreruperile anunțate în curs în sector, din anunțurile Termoenergetica, și
+        istoricul pe ani.
+      </p>
 
       <div className="mt-8">
         <StatRow

@@ -1,0 +1,84 @@
+{
+  "slug": "apa-calda",
+  "title": "Apă caldă în București: opriri, avarii și istoric",
+  "description": "Ce înseamnă o oprire de apă caldă în București, unde vezi anunțul Termoenergetica și cum verifici istoricul străzii tale înainte de chirie.",
+  "updated": "2026-09-25",
+  "lead": "Dacă nu ai apă caldă în București, primul pas e să verifici anunțurile publice ale Termoenergetica. Acolo apar punctul termic afectat, cauza și termenul estimat de repunere în funcțiune. Al doilea pas, dacă vrei să știi cât de des se întâmplă, e istoricul. Fără Apă Caldă reconstruiește aceste anunțuri din decembrie 2021: în 2025, mediana a fost de 22 de zile fără apă caldă pe punct termic, iar 92% dintre punctele termice au fost afectate măcar o dată. Suntem un proiect independent, nu Termoenergetica.",
+  "sections": [
+    {
+      "heading": "Unde afli dacă apa caldă e oprită azi",
+      "paragraphs": [
+        "Sursa oficială este pagina „Funcționare sistem termoficare” a Termoenergetica București, pe cmteb.ro. Pe ea compania anunță oprirea agentului termic în zonele afectate. Anunțurile sunt împărțite pe sectoare, iar fiecare rând are zonele afectate, agentul termic afectat, cauza sau descrierea intervenției și data și ora estimării punerii în funcțiune.",
+        "Termoenergetica are și aplicația de mobil TERMOALERT, gratuită pentru Android și iOS. Potrivit companiei, utilizatorii primesc notificări despre avariile și întreruperile din zona lor, motivul opririi, evoluția lucrărilor și data preconizată pentru reluarea furnizării.",
+        "Paginile de sector ale acestui site arată avariile în curs, preluate din aceleași anunțuri. Site-ul se reconstruiește o dată pe noapte, așa că poate rămâne în urmă față de anunțul oficial: o avarie rezolvată recent poate apărea încă „în curs” până la următoarea actualizare."
+      ],
+      "bullets": [
+        "Pentru situația de acum: pagina de funcționare a Termoenergetica sau aplicația TERMOALERT.",
+        "Pentru sector și istoric: paginile de sector de pe Fără Apă Caldă, de la Sectorul 1 la Sectorul 6.",
+        "Pentru adresa ta: căutarea după stradă sau punct termic de pe pagina principală."
+      ]
+    },
+    {
+      "heading": "Când revine apa caldă",
+      "paragraphs": [
+        "Singurul termen disponibil este cel anunțat de Termoenergetica, în coloana cu data și ora estimării punerii în funcțiune. Este o estimare a operatorului, nu o garanție. Nici noi nu știm mai mult: afișăm termenul anunțat, marcat ca atare, și nu facem prognoze proprii.",
+        "Dacă termenul trece și apa tot nu vine, verifică din nou pagina de funcționare sau aplicația: anunțul poate primi un termen nou. Istoricul de pe site te ajută să vezi dacă punctul tău termic are opriri dese, dar nu îți spune ora exactă la care revine apa."
+      ]
+    },
+    {
+      "heading": "Oprire, avarie, lucrare programată, deficiență",
+      "paragraphs": [
+        "În anunțuri apar mai multe situații, iar diferența contează când citești cifrele. O oprire înseamnă că apa caldă nu mai ajunge deloc la blocurile deservite de punctul termic. Oprirea poate veni dintr-o avarie, adică o defecțiune neplanificată, sau dintr-o lucrare programată, cum sunt reviziile și modernizările anunțate.",
+        "Deficiențele sunt altceva: presiune sau temperatură scăzută. Apa curge, dar e călduță sau abia curge. Pe acest site deficiențele se numără separat și nu intră în cifrele principale. În 2025, punctele termice din București au adunat 26.559 de zile de oprire (punct termic × zi) și, separat, 15.786 de zile cu presiune sau temperatură scăzută. Iar 86% dintre zilele cu deficiențe au căzut în zile în care apa nu era oprită."
+      ],
+      "bullets": [
+        "Avarie: defecțiune neplanificată, de exemplu o spărtură în rețea.",
+        "Lucrare programată: revizie sau modernizare anunțată.",
+        "Deficiență: presiune sau temperatură scăzută, numărată separat de opriri."
+      ]
+    },
+    {
+      "heading": "Cât de des rămâne Bucureștiul fără apă caldă",
+      "paragraphs": [
+        "Cifrele de mai jos numără doar zilele de oprire, reconstruite din anunțurile publice Termoenergetica. Din decembrie 2021 până acum au fost reconstruite 58.770 de episoade de întreruperi. În 2025, mediana a fost de 22 de zile fără apă caldă pe punct termic, iar 92% dintre punctele termice au fost afectate măcar o dată.",
+        "Diferențele dintre sectoare sunt mari. Mediana zilelor fără apă caldă în 2025 a fost de 48 de zile în Sectorul 5, 32 în Sectorul 2, 29 în Sectorul 4, 25 în Sectorul 3, 17 în Sectorul 1 și 15 în Sectorul 6. Sunt valori indicative: includ și punctele termice fără nicio întrerupere.",
+        "Pe luni, vârful din 2025 a fost în august, cu 5.052 de zile cumulate (punct termic × zi) cu întreruperi. Luna cea mai liniștită a fost februarie, cu 627."
+      ]
+    },
+    {
+      "heading": "Verifică strada înainte să semnezi chiria",
+      "paragraphs": [
+        "Un apartament arată la fel în septembrie și în august, dar istoricul punctului termic poate fi foarte diferit. Caută strada sau punctul termic pe pagina principală și uită-te la numărul de zile pe an, la împărțirea dintre avarii și lucrări programate și la deficiențe.",
+        "Citește corect cifra unei străzi. Termoenergetica raportează întreruperile pe punct termic, adică pe grupul de blocuri deservit de aceeași instalație. Zilele unei străzi sunt reuniunea zilelor tuturor punctelor termice care au listat strada. De exemplu, cele 193 de zile ale străzii Toporași din 2025 înseamnă zile în care cel puțin o adresă de pe stradă a fost afectată, nu că toată strada a stat fără apă caldă atâtea zile. Pentru un bloc anume, pagina punctului termic e mai precisă.",
+        "Când Termoenergetica nu a numit niciodată o stradă, punctul ei termic e estimat după proximitate și marcat clar drept estimare. Dacă te interesează o adresă anume, întreabă proprietarul sau asociația de proprietari de ce punct termic ține blocul."
+      ],
+      "bullets": [
+        "Caută strada și notează punctul termic al blocului.",
+        "Compară zilele de oprire cu mediana sectorului.",
+        "Uită-te separat la deficiențe: apa călduță nu apare în cifra principală.",
+        "Verifică dacă opririle sunt mai ales avarii sau lucrări programate."
+      ]
+    },
+    {
+      "heading": "De unde vin datele și ce limite au",
+      "paragraphs": [
+        "Datele vin din pagina publică de funcționare a Termoenergetica, arhivată automat, în medie la fiecare oră, începând cu 19 decembrie 2021. Universul de referință are 947 de puncte termice. Un episod începe când punctul termic apare în listă și se închide când dispare din ea.",
+        "Limitele sunt simple: întreruperile pe care Termoenergetica nu le-a publicat nu există în date, iar pauzele de colectare pot pierde episoade scurte. Metodologia completă, cu acoperirea pe ani și verificările încrucișate, este pe pagina Metodologie. Fără Apă Caldă nu este afiliat cu Termoenergetica, CMTEB sau Primăria Municipiului București."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "title": "Termoenergetica București: Funcționare sistem termoficare",
+      "url": "https://www.cmteb.ro/functionare_sistem_termoficare.php"
+    }
+  ],
+  "related": [
+    { "label": "Caută strada ta: istoricul întreruperilor din București", "href": "/" },
+    { "label": "Apă caldă Sectorul 3: avarii azi și istoric", "href": "/sector/3" },
+    { "label": "Harta punctelor termice", "href": "/harta" },
+    { "label": "Clasamente pe străzi, puncte termice și sectoare", "href": "/clasament" },
+    { "label": "Metodologie: ce numărăm și ce nu", "href": "/metodologie" },
+    { "label": "Despre proiect", "href": "/despre" }
+  ]
+}
