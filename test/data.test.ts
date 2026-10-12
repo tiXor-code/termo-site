@@ -31,7 +31,7 @@ describe('lib/data', () => {
 
   it('pt ranking is sorted by days desc', () => {
     const rows = getPtRanking(2024);
-    expect(rows.length).toBe(2);
+    expect(rows.length).toBe(3); // alfa, beta, gama (gama = the deficienta-guard case)
     for (let i = 1; i < rows.length; i++) {
       expect(rows[i - 1].days).toBeGreaterThanOrEqual(rows[i].days);
     }
@@ -45,6 +45,7 @@ describe('lib/data', () => {
     expect(alfa!.years['2024'].runs).toEqual([
       [114, 14, 'programat'],
       [200, 5, 'avarie'],
+      [250, 2, 'deficienta'], // matches days_deficienta: 2 - fixtures are self-consistent
       [300, 2, 'programat'],
     ]);
     expect(alfa!.years['2024'].episodes[2].ongoing).toBe(true);
@@ -55,7 +56,7 @@ describe('lib/data', () => {
 
   it('ndjson tolerates a trailing newline', () => {
     // fixture files end with "\n"; both lines must still parse
-    expect(getPtAll().size).toBe(2);
+    expect(getPtAll().size).toBe(3);
     expect(getStradaAll().size).toBe(2);
   });
 

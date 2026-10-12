@@ -1,0 +1,99 @@
+{
+  "slug": "istoric-intreruperi-apa-calda-strada",
+  "title": "Istoricul întreruperilor de apă caldă pe stradă",
+  "description": "Cum verifici câte zile a stat o stradă din București fără apă caldă, pe punct termic, înainte să semnezi chiria sau să cumperi.",
+  "updated": "2026-09-27",
+  "lead": "Istoricul întreruperilor de apă caldă pe o stradă din București îl găsești pe Fără Apă Caldă: cauți strada, alegi blocul și vezi, an cu an din decembrie 2021, câte zile a fost oprită apa caldă, din ce cauză și ce termen anunțase Termoenergetica. Datele sunt reconstruite din anunțurile publice Termoenergetica și se actualizează o dată pe noapte. Proiectul este independent, nu o sursă oficială. Mai jos: cum faci verificarea și cum citești corect cifrele.",
+  "sections": [
+    {
+      "heading": "De unde vine istoricul unei străzi",
+      "paragraphs": [
+        "Termoenergetica București publică pe pagina de funcționare a sistemului de termoficare lista punctelor termice cu opriri: sectorul, blocurile afectate, cauza sau descrierea intervenției și data estimată a punerii în funcțiune. Lista arată opririle anunțate în acel moment. Când o oprire se încheie, punctul termic dispare din listă.",
+        "Fără Apă Caldă păstrează ce trece prin această listă. Pagina de funcționare a fost arhivată automat, în medie la fiecare oră, începând cu 19 decembrie 2021: întâi de o arhivă comunitară independentă, apoi, de la 10 iunie 2026, de colectorul propriu al site-ului. Instantaneele succesive sunt comparate și transformate în episoade: un episod începe când un punct termic apare în listă și se încheie când dispare. Până la actualizarea din 26 septembrie 2026 au fost reconstruite 58.770 de episoade de întreruperi.",
+        "Site-ul este un proiect independent, fără legătură cu Termoenergetica sau cu Primăria Municipiului București. Nu știe mai mult decât a anunțat Termoenergetica și nu are acces la registrele interne ale companiei."
+      ]
+    },
+    {
+      "heading": "De ce contează punctul termic, nu doar strada",
+      "paragraphs": [
+        "Termoenergetica raportează întreruperile pe punct termic, unitatea care deservește un grup de blocuri. Zilele afișate pentru o stradă sunt reuniunea zilelor tuturor punctelor termice care au listat strada în anunțuri. Cifra „pe toată strada” înseamnă zile în care cel puțin o adresă de pe stradă a fost afectată, nu zile în care toată strada a stat fără apă caldă.",
+        "Pe arterele lungi, diferența e mare. Calea Vitan (Sector 3) apare cu 78 de zile cu întreruperi în 2025, din care 54 din avarii. Strada e însă deservită de 9 puncte termice, iar în 2025 situația a variat între 0 și 46 de zile, în funcție de zonă. Blocurile de la PT 1 Vitan au avut 27 de zile fără apă caldă, cele de la PT 10 Vitan, 13 zile. Mediana orașului, pe punct termic, a fost de 22 de zile în 2025.",
+        "Concluzia practică: nu te opri la numărul străzii. Alege blocul sau punctul termic care îl deservește și abia apoi compară."
+      ]
+    },
+    {
+      "heading": "Cum verifici o adresă, pas cu pas",
+      "paragraphs": [
+        "Verificarea durează câteva minute. Pașii de mai jos folosesc paginile de stradă și de punct termic ale site-ului.",
+        "Căutarea după număr alege, dintre punctele termice care deservesc strada, pe cel mai apropiat de adresă, pe baza coordonatelor din OpenStreetMap, cu acoperire parțială. Este o estimare după proximitate, nu o cartare oficială adresă–punct termic. La fel, pentru străzile pe care Termoenergetica nu le-a numit niciodată, punctul termic este estimat după proximitate și marcat clar ca estimare."
+      ],
+      "bullets": [
+        "Scrie numele străzii în căutarea de pe prima pagină. Poți căuta și cu număr, de exemplu „Colentina 64”.",
+        "Pe pagina străzii, alege blocul din lista „Care e blocul tău?”. Lista arată punctele termice care deservesc strada și blocurile fiecăruia.",
+        "Citește numărul mare: zilele fără apă caldă ale blocului în ultimul an complet, comparate cu media orașului.",
+        "Coboară la calendar: fiecare an, cu avariile, lucrările programate și zilele cu presiune sau temperatură scăzută marcate diferit.",
+        "Deschide tabelul „Ce s-a întâmplat, episod cu episod”: început, sfârșit, cauza raportată și restabilirea estimată anunțată de Termoenergetica.",
+        "Pentru toți anii, intră pe pagina punctului termic, din linkul de sub tabel.",
+        "Compară zona cu altele în clasamentul străzilor sau pe harta punctelor termice."
+      ]
+    },
+    {
+      "heading": "Cum citești cifrele",
+      "paragraphs": [
+        "O „zi cu întrerupere” este o zi calendaristică atinsă de cel puțin un episod de oprire a apei calde, fie avarie, fie lucrare programată. Se numără zilele distincte, nu suma orelor. O oprire de o oră și una de o zi întreagă contează la fel în total, așa că merită să te uiți și la episoade.",
+        "Avariile sunt defecțiuni neplanificate, iar lucrările programate sunt revizii și modernizări anunțate. Clasificarea vine din textul cauzei raportate de Termoenergetica. O zi atinsă de ambele tipuri se numără o dată în total, dar apare în ambele defalcări, de aceea „din care avarii” plus „din care programate” poate depăși totalul. Cauzele care nu pot fi clasificate rămân „neclasificate”: în anii recenți, 3–6% din episoadele de oprire.",
+        "Presiunea sau temperatura scăzută nu sunt opriri și nu intră în numărul mare. Apar separat, ca al doilea număr. În 2025, punctele termice din București au adunat 26.559 de zile de oprire (punct termic × zi) și, separat, 15.786 de zile cu presiune sau temperatură scăzută. O zonă cu sub 10 zile de oprire primește eticheta „Curat”, dar nu și dacă a avut cel puțin 30 de zile cu deficiențe în același an.",
+        "Tiparul spune mai mult decât un singur an. Pe pagina unui bloc vezi dacă avariile se repetă an de an sau dacă un an greu vine dintr-o singură lucrare lungă. La PT 1 Vitan, de exemplu, anii 2022–2025 au avut 18, 40, 29 și 27 de zile fără apă caldă."
+      ]
+    },
+    {
+      "heading": "Ce nu îți spune istoricul",
+      "paragraphs": [
+        "Datele sunt la fel de bune ca anunțurile din care provin. Limitările sunt documentate în metodologie; cele mai importante pentru o verificare de adresă sunt acestea."
+      ],
+      "bullets": [
+        "Întreruperile pe care Termoenergetica nu le-a publicat nu există în date.",
+        "Pauzele de colectare pot pierde episoade scurte. Episoadele care traversează o pauză sunt marcate cu ≈, ca interval estimat.",
+        "Anii parțiali (2021 și anul în curs) nu se compară direct cu anii întregi.",
+        "Numărul de blocuri deservite de un punct termic este o estimare din anunțuri, nu o evidență oficială.",
+        "Site-ul se actualizează o dată pe noapte. O avarie rezolvată recent poate apărea încă „în curs” până la următoarea actualizare.",
+        "Încălzirea nu face parte din această versiune a datelor. Cifrele privesc doar apa caldă de consum.",
+        "Istoricul descrie trecutul. Nu spune câte zile fără apă caldă va avea o adresă de acum înainte."
+      ]
+    },
+    {
+      "heading": "Dacă nu ai apă caldă acum",
+      "paragraphs": [
+        "Pentru situația de azi, sursa este Termoenergetica. Pe pagina de funcționare a sistemului de termoficare, compania listează pe sectoare punctele termice și blocurile afectate, cauza și data și ora estimate pentru punerea în funcțiune. Compania precizează că termenul afișat este estimat. Fără Apă Caldă preia doar acest termen anunțat și nu poate spune când revine apa.",
+        "Dacă adresa ta nu apare în liste, Termoenergetica îndrumă către dispeceratele de sector sau către call-center: TELVERDE 0800 820 002 (apel gratuit) și 031 9442, disponibile 24 de ore din 24. Compania are și aplicația mobilă TERMOALERT, prin care trimite notificări despre avariile și întreruperile din zona utilizatorului."
+      ]
+    },
+    {
+      "heading": "Înainte să semnezi chiria sau să cumperi",
+      "paragraphs": [
+        "Istoricul unui bloc este un argument concret în discuția cu proprietarul sau cu agentul imobiliar. Lucruri de urmărit pe pagina blocului:",
+        "Toate cifrele sunt reproductibile: metodologia explică ce se numără și ce nu, iar setul de date complet se poate descărca, regenerat în fiecare noapte."
+      ],
+      "bullets": [
+        "Câte zile fără apă caldă a avut punctul termic în ultimii ani compleți, comparat cu mediana orașului.",
+        "Dacă zilele vin mai ales din avarii repetate sau din lucrări programate. Cauzele raportate arată, de exemplu, lucrări de modernizare pe magistrale sau avarii pe rețeaua primară ori secundară.",
+        "Câte zile cu presiune sau temperatură scăzută s-au adunat separat.",
+        "Dacă vezi avarii repetate, întreabă proprietarul dacă apartamentul are centrală proprie.",
+        "Ce arată anul în curs, ținând cont că nu este un an complet."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "title": "Termoenergetica București – Funcționare sistem termoficare",
+      "url": "https://www.cmteb.ro/functionare_sistem_termoficare.php"
+    }
+  ],
+  "related": [
+    { "label": "Clasamentul străzilor", "href": "/clasament/strazi" },
+    { "label": "Harta punctelor termice", "href": "/harta" },
+    { "label": "Metodologie", "href": "/metodologie" },
+    { "label": "Exemplu: Calea Vitan", "href": "/strada/cal-vitan" },
+    { "label": "Despre proiect", "href": "/despre" }
+  ]
+}

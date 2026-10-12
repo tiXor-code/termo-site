@@ -28,3 +28,44 @@ export function gradeFor(days: number): { key: Grade; label: string } {
           : 'red';
   return { key, label: LABELS[key] };
 }
+
+/**
+ * Deficiency days per year at or above which an otherwise-green entity stops
+ * being called "Curat". 30 is deliberately the SAME boundary the locked scale
+ * uses to turn outage days orange: a zone that spent a full month on low
+ * pressure or low temperature has not had a clean year, whatever the outage
+ * counter says.
+ *
+ * Publicly documented at /metodologie#deficiente - change both together.
+ * Measured on 2025: fires on 11 of 905 PTs, all in Sector 6.
+ */
+export const DEFICIENTA_GUARD_DAYS = 30;
+
+export interface Verdict {
+  key: Grade;
+  label: string;
+  /** The grade the headline number ALONE produces, before the guard. */
+  baseKey: Grade;
+  /** True only when the guard moved an otherwise-green verdict up to amber. */
+  demoted: boolean;
+  /** Deficiency days behind the guard; 0 when absent or not a real count. */
+  daysDeficienta: number;
+}
+
+/**
+ * Verdict for an entity, aware of the pressure/temperature-degraded days the
+ * headline metric excludes by design.
+ *
+ * The guard is one-directional and one-step: it can only move GREEN to AMBER,
+ * never amber->orange, never orange->red, never downward. `days` - the headline
+ * number - is never modified, and `gradeFor` is not touched, so the locked
+ * 0/10/30/90 scale still governs every entity that has real outage days.
+ */
+export function verdictFor(days: number, daysDeficienta = 0): Verdict {
+  const base = gradeFor(days);
+  const def =
+    Number.isFinite(daysDeficienta) && daysDeficienta > 0 ? Math.floor(daysDeficienta) : 0;
+  const demoted = base.key === 'green' && def >= DEFICIENTA_GUARD_DAYS;
+  const key: Grade = demoted ? 'amber' : base.key;
+  return { key, label: LABELS[key], baseKey: base.key, demoted, daysDeficienta: def };
+}

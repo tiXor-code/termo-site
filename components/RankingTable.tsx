@@ -21,12 +21,21 @@ export interface RankingTableProps {
   enableCauzaFilter?: boolean;
 }
 
-type SortKey = 'days' | 'days_avarie' | 'days_programat' | 'episodes' | 'longest_days';
+type SortKey =
+  | 'days'
+  | 'days_avarie'
+  | 'days_programat'
+  | 'days_deficienta'
+  | 'episodes'
+  | 'longest_days';
 
 const NUM_COLS: { key: SortKey; label: (year: number) => string; sectorLabel?: string }[] = [
   { key: 'days', label: () => 'Zile fără apă caldă', sectorLabel: 'Zile fără apă caldă (mediană)' },
   { key: 'days_avarie', label: () => 'din care avarii', sectorLabel: 'avarii (medie)' },
   { key: 'days_programat', label: () => 'din care programate', sectorLabel: 'programate (medie)' },
+  // Placed AFTER days_programat so the `days` cell stays at td index 3, which
+  // e2e/clasament-harta.spec.ts asserts on.
+  { key: 'days_deficienta', label: () => 'zile cu deficiențe' },
   { key: 'episodes', label: () => 'Episoade' },
   { key: 'longest_days', label: () => 'Cel mai lung episod' },
 ];
@@ -81,8 +90,11 @@ function RankingTableInner({
   const showSector = unit !== 'sector';
   const showLongest = unit !== 'sector';
   const showDelta = unit !== 'sector';
+  const showDeficienta = unit !== 'sector'; // no sector-level source field
   const cols = NUM_COLS.filter(
-    (c) => c.key !== 'longest_days' || showLongest,
+    (c) =>
+      (c.key !== 'longest_days' || showLongest) &&
+      (c.key !== 'days_deficienta' || showDeficienta),
   );
 
   const sorted = useMemo(() => {
@@ -122,7 +134,17 @@ function RankingTableInner({
 
   return (
     <div>
-      <table className="w-full border-collapse text-sm tnum">
+      {/* The table gained a column and no longer fits a 390px viewport. Scroll
+          the table itself rather than the page, and expose it to assistive tech
+          and the keyboard: a scrollable region needs a role and a tabIndex or it
+          cannot be reached without a pointer. */}
+      <div
+        className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0"
+        role="region"
+        aria-label={`Clasament ${entityHead.toLowerCase()} — tabel derulabil orizontal`}
+        tabIndex={0}
+      >
+        <table className="w-full min-w-[46rem] border-collapse text-sm tnum md:min-w-0">
         <thead>
           <tr className="hairline-b text-left text-xs text-ink-soft">
             <th scope="col" className="py-2 pr-3 font-normal">
@@ -192,7 +214,8 @@ function RankingTableInner({
             ))}
           </tbody>
         ))}
-      </table>
+        </table>
+      </div>
       {restUrl && rows.length < totalCount && (
         <p className="mt-4">
           <button
@@ -216,7 +239,13 @@ function RankingTableWithFilter(props: Omit<RankingTableProps, 'enableCauzaFilte
   const params = useSearchParams();
   const cauza = params.get('cauza');
   const initialSort: SortKey =
-    cauza === 'avarii' ? 'days_avarie' : cauza === 'programate' ? 'days_programat' : 'days';
+    cauza === 'avarii'
+      ? 'days_avarie'
+      : cauza === 'programate'
+        ? 'days_programat'
+        : cauza === 'deficiente'
+          ? 'days_deficienta'
+          : 'days';
   return <RankingTableInner {...props} initialSort={initialSort} />;
 }
 

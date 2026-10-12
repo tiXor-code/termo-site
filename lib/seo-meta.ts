@@ -1,6 +1,7 @@
 // Title/description builders for detail pages (Group C owns this file).
 import type { PtEntity, StreetEntity } from '@/lib/data';
-import { fmtInt } from '@/lib/format';
+import { deFor, fmtInt, fmtZile } from '@/lib/format';
+import { deficientaDays } from '@/lib/deficienta';
 
 /**
  * Mirrors the `%s | Fără Apă Caldă` title template in app/layout.tsx. A plain
@@ -66,6 +67,17 @@ export function ptDescription(pt: PtEntity, an: number): string {
   const who = `${pt.name} (Sector ${pt.sector})`;
   const y = pt.years[String(an)];
   if (!y || y.days === 0) {
+    // A zero-outage PT can still carry deficiency days. Claiming "fără
+    // întreruperi" here would contradict the page body, which now reports them
+    // — a body/description mismatch Google can see.
+    const def = y?.days_deficienta ?? 0;
+    if (def > 0) {
+      return fitDescription([
+        `${who}: fără opriri de apă caldă în ${an}, dar ${fmtZile(def)} cu presiune sau temperatură scăzută. Istoric complet pe ani.`,
+        `${who}: fără opriri în ${an}, dar ${fmtZile(def)} cu presiune sau temperatură scăzută.`,
+        `${cutAtWord(pt.name, 80)} (Sector ${pt.sector}): fără opriri în ${an}, ${fmtZile(def)} cu deficiențe.`,
+      ]);
+    }
     return fitDescription([
       `${who}: fără întreruperi de apă caldă înregistrate în ${an}. Istoric complet pe ani, episoade și comparație cu orașul.`,
       `${who}: fără întreruperi de apă caldă înregistrate în ${an}. Istoric complet pe ani.`,
@@ -91,19 +103,51 @@ export function streetTitle(street: StreetEntity): PageTitle {
   );
 }
 
+/**
+ * `ptDays` = last-complete-year outage days of each PT serving the street.
+ * When several PTs serve the street with different totals, the description
+ * leads with that per-PT range — the number the page body leads with — and not
+ * with the street-wide union, which the page itself labels misleading.
+ */
 export function streetDescription(
   street: StreetEntity,
   an: number,
   firstYear: number,
   lastYear: number,
+  ptDays: number[] = [],
 ): string {
   const istoric = `Istoric complet ${firstYear}–${lastYear}, pe punct termic.`;
   const y = street.years[String(an)];
   if (!y || y.days === 0) {
+    // Same body/description contradiction ptDescription guards against: a
+    // zero-outage street-year can still carry deficiency days, and the page
+    // body now reports them. Read through deficientaDays(), never the optional
+    // field, so an older bundle degrades to 0 instead of NaN.
+    const def = deficientaDays(y, an);
+    if (def > 0) {
+      return fitDescription([
+        `${street.name}: fără opriri de apă caldă în ${an}, dar ${fmtZile(def)} cu presiune sau temperatură scăzută. ${istoric}`,
+        `${street.name}: fără opriri în ${an}, dar ${fmtZile(def)} cu presiune sau temperatură scăzută.`,
+        `${cutAtWord(street.name, 60)}: fără opriri în ${an}, ${fmtZile(def)} cu deficiențe.`,
+      ]);
+    }
     return fitDescription([
       `${street.name}: fără întreruperi de apă caldă înregistrate în ${an}. ${istoric}`,
       `${street.name}: fără întreruperi de apă caldă înregistrate în ${an}.`,
     ]);
+  }
+  if (ptDays.length > 1) {
+    const min = Math.min(...ptDays);
+    const max = Math.max(...ptDays);
+    if (min !== max) {
+      const n = ptDays.length;
+      const range = `între ${fmtInt(min)} și ${fmtZile(max)} fără apă caldă în ${an}, în funcție de punctul termic`;
+      return fitDescription([
+        `${street.name}: ${range} (${fmtInt(n)} ${deFor(n)}puncte termice). ${istoric}`,
+        `${street.name}: ${range}.`,
+        `${cutAtWord(street.name, 60)}: ${range}.`,
+      ]);
+    }
   }
   const avut = `a avut ${fmtInt(y.days)} zile cu întreruperi de apă caldă în ${an}, din care ${fmtInt(y.days_avarie)} din avarii`;
   return fitDescription([

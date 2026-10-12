@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/Link';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import CompareModule from '@/components/CompareModule';
 import EpisodeTable from '@/components/EpisodeTable';
 import MethodologyFootnote from '@/components/MethodologyFootnote';
+import OngoingBand from '@/components/OngoingBand';
 import OutageStrip from '@/components/OutageStrip';
+import StripLegend from '@/components/StripLegend';
 import StatRow from '@/components/StatRow';
 import VerdictBand from '@/components/VerdictBand';
 import {
@@ -17,6 +19,7 @@ import {
   type PtYear,
 } from '@/lib/data';
 import { fmtInt, fmtZile, yearLabel } from '@/lib/format';
+import { ongoingForPt } from '@/lib/pt-live';
 import { siteUrl } from '@/lib/seo';
 import { ptDescription, ptTitle } from '@/lib/seo-meta';
 
@@ -79,6 +82,11 @@ export default async function PunctTermicPage({
   const lcyData = pt.years[String(lcy)] ?? EMPTY_YEAR;
   const lcySummary = getYearSummary(lcy);
 
+  const ptOngoing = ongoingForPt(pt.years);
+  const OngoingBandEl = () => (
+    <OngoingBand ongoing={ptOngoing} dataThrough={meta.data_through} sector={pt.sector} />
+  );
+
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
       <Breadcrumbs
@@ -89,14 +97,20 @@ export default async function PunctTermicPage({
         ]}
       />
 
+      {/* Water off right now outranks last year's total. Same rule as the street
+          page: hoisted only when something is ongoing, so pages with nothing
+          happening still lead with the headline number. */}
+      {ptOngoing.length > 0 ? <OngoingBandEl /> : null}
       <VerdictBand
         scope="pt"
         days={lcyData.days}
+        daysDeficienta={lcyData.days_deficienta}
         year={lcy}
         name={pt.name}
         cityMedian={lcySummary.median_pt_days}
         partial={lcySummary.partial}
       />
+      {ptOngoing.length === 0 ? <OngoingBandEl /> : null}
 
       <h1 className="mt-6 font-display text-3xl font-bold">{pt.name}</h1>
       <p className="mt-3 max-w-2xl text-lg leading-snug">
@@ -106,9 +120,30 @@ export default async function PunctTermicPage({
             caldă în {lcy}: {fmtInt(lcyData.days_avarie)} din avarii și{' '}
             {fmtInt(lcyData.days_programat)} din lucrări programate.
           </>
+        ) : lcyData.days_deficienta > 0 ? (
+          <>
+            Fără opriri de apă caldă înregistrate în {lcy} — dar{' '}
+            {fmtZile(lcyData.days_deficienta)} cu presiune sau temperatură scăzută.
+          </>
         ) : (
           <>Fără întreruperi înregistrate în {lcy}.</>
         )}
+        {lcyData.days > 0 && lcyData.days_deficienta > 0 && (
+          <>
+            {' '}
+            În plus, {fmtZile(lcyData.days_deficienta)} cu presiune sau temperatură scăzută,
+            numărate separat.
+          </>
+        )}
+      </p>
+      {/* Descriptive in-content link to the sector page (the breadcrumb was the
+          only link), so sector "azi" queries get a clear internal signal. */}
+      <p className="mt-3 max-w-2xl text-sm">
+        <Link href={`/sector/${pt.sector}`} className="underline">
+          Avarii de apă caldă azi în Sectorul {pt.sector}
+        </Link>{' '}
+        — toate întreruperile anunțate în curs în sector, din anunțurile Termoenergetica, și
+        istoricul pe ani.
       </p>
 
       <div className="mt-8">
@@ -120,7 +155,7 @@ export default async function PunctTermicPage({
             {
               value: fmtInt(lcyData.days_deficienta),
               label: 'zile cu deficiențe (presiune/temperatură) — numărate separat',
-              footnoteHref: '/metodologie#ce-numaram',
+              footnoteHref: '/metodologie#deficiente',
             },
             { value: `≈ ${fmtInt(Math.round(lcyData.est_hours))}`, label: 'ore estimate' },
             { value: fmtInt(lcyData.longest_days), label: 'cel mai lung episod (zile)' },
@@ -135,27 +170,41 @@ export default async function PunctTermicPage({
         </MethodologyFootnote>
       </div>
 
+      <div className="mt-8">
+        <StripLegend deficienta />
+      </div>
+
       {yearsDesc.map((year) => {
         const data = pt.years[String(year)] ?? EMPTY_YEAR;
         const distribution = getDistribution(year);
         return (
           <section key={year} className="mt-12 border-t border-hairline pt-6">
             <h2 className="font-display text-2xl font-bold">{yearLabel(year, meta)}</h2>
-            {data.days === 0 && (
+            {data.days === 0 && data.days_deficienta === 0 && (
               <p className="mt-2 text-sm text-ink-soft">Fără întreruperi înregistrate în {year}.</p>
+            )}
+            {data.days === 0 && data.days_deficienta > 0 && (
+              <p className="mt-2 text-sm text-ink-soft">
+                Fără opriri înregistrate în {year} — dar {fmtZile(data.days_deficienta)} cu
+                presiune sau temperatură scăzută.
+              </p>
             )}
             {data.days > 0 && (
               <p className="mt-2 text-sm text-ink-soft">
                 {fmtZile(data.days)} fără apă caldă · {fmtInt(data.episodes_count)} episoade · cel
                 mai lung: {fmtZile(data.longest_days)}
+                {data.days_deficienta > 0 && (
+                  <> · {fmtZile(data.days_deficienta)} cu deficiențe</>
+                )}
               </p>
             )}
-            <div className="mt-4">
+            <div className="mt-2">
               <OutageStrip
                 year={year}
                 runs={data.runs}
-                ariaLabel={`Calendarul întreruperilor ${pt.name} în ${year}`}
+                ariaLabel={`Calendarul întreruperilor ${pt.name} în ${year}, cu zilele de presiune sau temperatură scăzută marcate separat`}
                 dataThroughDoy={dataThroughDoy(meta.data_through, year)}
+                showDeficienta
                 showMonthLabels
               />
             </div>

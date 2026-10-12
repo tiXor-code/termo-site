@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, Source_Serif_4 } from 'next/font/google';
 import Script from 'next/script';
 import './globals.css';
+import AppPollModal from '@/components/AppPollModal';
 import FeedbackWidget from '@/components/FeedbackWidget';
 import SiteNav from '@/components/SiteNav';
 import SourceFooter from '@/components/SourceFooter';
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <SourceFooter />
         <FeedbackWidget />
+        <AppPollModal />
         <JsonLd data={webSiteJsonLd()} />
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}

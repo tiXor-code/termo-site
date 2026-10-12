@@ -11,6 +11,8 @@ export interface RankingRowView {
   days: number;
   days_avarie: number;
   days_programat: number;
+  /** Secondary counter. Never summed into `days`; hidden for unit 'sector'. */
+  days_deficienta: number;
   episodes: number;
   longest_days: number;
   delta_prev: number | null;
@@ -26,6 +28,7 @@ export function ptRowToView(row: PtRankingRow, rank: number): RankingRowView {
     days: row.days,
     days_avarie: row.days_avarie,
     days_programat: row.days_programat,
+    days_deficienta: row.days_deficienta ?? 0,
     episodes: row.episodes,
     longest_days: row.longest_days,
     delta_prev: row.delta_prev,
@@ -47,6 +50,7 @@ export function streetRowToView(row: StreetRankingRow, rank: number): RankingRow
     days: row.days,
     days_avarie: row.days_avarie,
     days_programat: row.days_programat,
+    days_deficienta: row.days_deficienta ?? 0,
     episodes: row.episodes,
     longest_days: row.longest_days,
     delta_prev: row.delta_prev,
@@ -68,6 +72,7 @@ export function sectorRowToView(row: SectorRankingRow, rank: number): RankingRow
     days: row.median_days,
     days_avarie: row.mean_days_avarie,
     days_programat: row.mean_days_programat,
+    days_deficienta: 0, // no sector-level source field; column is hidden for 'sector'
     episodes: row.episodes,
     longest_days: 0,
     delta_prev: null,

@@ -7,7 +7,7 @@
 // BlockFinder instead, which also pre-selects the PT — see BlockFinder.)
 
 import { Suspense } from 'react';
-import Link from 'next/link';
+import Link from '@/components/Link';
 import { useSearchParams } from 'next/navigation';
 import { resolveAddr, type AddrMap } from '@/lib/address';
 import { fold } from '@/lib/search';

@@ -192,3 +192,49 @@ export function inferredStreet(): InferredFixture {
     days: pts.get(chosen.inferred_pt as string)?.years[year]?.days ?? 0,
   };
 }
+
+export interface OngoingFixture {
+  /** A PT with an ongoing episode that carries an estimated restore time. */
+  slug: string;
+  name: string;
+  sector: number;
+  /** The raw ISO restore datetime, e.g. "2026-09-04T23:00". */
+  remediere: string;
+}
+
+interface PtLiveRecord {
+  slug: string;
+  name: string;
+  sector: number;
+  years: Record<string, { episodes?: { ongoing: boolean; remediere_last: string | null }[] }>;
+}
+
+function ptLiveRecords(): PtLiveRecord[] {
+  return readNdjsonGz<PtLiveRecord>('pt/all.ndjson.gz');
+}
+
+/**
+ * A PT currently under an announced interruption WITH an estimated restore.
+ * Data-dependent: returns null out of season, so specs skip rather than fail.
+ */
+export function ptWithOngoing(): OngoingFixture | null {
+  for (const pt of ptLiveRecords()) {
+    for (const yd of Object.values(pt.years ?? {})) {
+      for (const e of yd.episodes ?? []) {
+        if (e.ongoing && e.remediere_last) {
+          return { slug: pt.slug, name: pt.name, sector: pt.sector, remediere: e.remediere_last };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/** A PT with no ongoing interruption — exercises the honest empty state. */
+export function ptWithoutOngoing(): { slug: string } | null {
+  const pt = ptLiveRecords().find(
+    (p) =>
+      !Object.values(p.years ?? {}).some((y) => (y.episodes ?? []).some((e) => e.ongoing)),
+  );
+  return pt ? { slug: pt.slug } : null;
+}

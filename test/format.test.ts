@@ -6,6 +6,7 @@ import {
   fmtDec,
   fmtInt,
   fmtRatio,
+  deFor,
   fmtZile,
   yearLabel,
 } from '@/lib/format';
@@ -38,6 +39,26 @@ describe('lib/format', () => {
     expect(fmtZile(19)).toBe('19 zile');
     expect(fmtZile(22)).toBe('22 de zile');
     expect(fmtZile(0)).toBe('0 zile');
+  });
+
+  it('fmtZile decides "de" from the last two digits, not the magnitude', () => {
+    // The rule cycles: 100 takes "de", 101-119 do not, 120 does again.
+    expect(fmtZile(100)).toBe('100 de zile');
+    expect(fmtZile(101)).toBe('101 zile');
+    expect(fmtZile(119)).toBe('119 zile');
+    expect(fmtZile(120)).toBe('120 de zile');
+    expect(fmtZile(179)).toBe('179 de zile'); // the real pt-modul-toporasi figure
+    expect(fmtZile(905)).toBe('905 zile');
+    expect(fmtZile(1000)).toBe('1.000 de zile');
+  });
+
+  it('deFor mirrors the same rule for other nouns', () => {
+    expect(deFor(5)).toBe('');
+    expect(deFor(19)).toBe('');
+    expect(deFor(20)).toBe('de ');
+    expect(deFor(100)).toBe('de ');
+    expect(deFor(905)).toBe('');
+    expect(deFor(0)).toBe('');
   });
 
   it('fmtDateRo renders full Romanian dates', () => {

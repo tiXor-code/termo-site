@@ -69,3 +69,38 @@ describe('lib/strip', () => {
     }
   });
 });
+
+describe('lib/strip deficienta painting (opt-in)', () => {
+  it('paints "deficienta" only when asked, and at the LOWEST priority', () => {
+    const runs: Run[] = [
+      [10, 5, 'deficienta'],
+      [12, 2, 'avarie'],
+    ];
+    expect(runsToSegments(runs, 2025)).toEqual([{ x: 11, width: 2, cause: 'avarie' }]);
+    expect(runsToSegments(runs, 2025, { includeDeficienta: true })).toEqual([
+      { x: 9, width: 2, cause: 'deficienta' },
+      { x: 11, width: 2, cause: 'avarie' },
+      { x: 13, width: 1, cause: 'deficienta' },
+    ]);
+  });
+
+  it('including deficienta never repaints an outage day (the headline invariant)', () => {
+    const runs: Run[] = [
+      [1, 40, 'deficienta'],
+      [10, 10, 'programat'],
+      [15, 5, 'avarie'],
+      [100, 3, 'deficienta'],
+    ];
+    const plain = runsToSegments(runs, 2025);
+    const withDef = runsToSegments(runs, 2025, { includeDeficienta: true }).filter(
+      (s) => s.cause !== 'deficienta',
+    );
+    expect(withDef).toEqual(plain);
+  });
+
+  it('still refuses unknown cause strings even with deficienta enabled', () => {
+    expect(runsToSegments([[30, 4, 'mentenanta']], 2025, { includeDeficienta: true })).toEqual(
+      [],
+    );
+  });
+});

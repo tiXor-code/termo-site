@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import Link from '@/components/Link';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import SectorSilhouetteMap from '@/components/SectorSilhouetteMap';
 import StatHero from '@/components/StatHero';
@@ -12,7 +12,15 @@ import {
   getYearSummary,
   lastCompleteYear,
 } from '@/lib/data';
-import { fmtDateRo, fmtDateTimeRo, fmtDec, fmtInt, fmtZile, yearLabel } from '@/lib/format';
+import {
+  deFor,
+  fmtDateRo,
+  fmtDateTimeRo,
+  fmtDec,
+  fmtInt,
+  fmtZile,
+  yearLabel,
+} from '@/lib/format';
 import { sectorsLabel } from '@/lib/rankings';
 import { getSectorLive, type SectorLive } from '@/lib/sector-live';
 import { faqJsonLd, JsonLd } from '@/lib/seo';
@@ -36,7 +44,7 @@ function fmtIntreruperi(n: number): string {
 /** "un punct termic" / "3 puncte termice" / "56 de puncte termice". */
 function fmtPuncteTermice(n: number): string {
   if (n === 1) return 'un punct termic';
-  if (n >= 20) return `${fmtInt(n)} de puncte termice`;
+  if (deFor(n)) return `${fmtInt(n)} de puncte termice`;
   return `${n} puncte termice`;
 }
 
@@ -48,9 +56,10 @@ const STREETS_SHOWN = 10;
 
 /**
  * Termoenergetica dispatch numbers per sector, as published on
- * cmteb.ro/contact.php (checked 2026-08-24). All dispecerate answer non-stop.
- * 031.9442 = automated per-sector status line; 0800.820.002 = free TELVERDE
- * line for complaints. Re-check the source page when touching these.
+ * cmteb.ro/contact.php (checked 2026-08-24, re-verified 2026-10-12). All
+ * dispecerate answer non-stop. 031.9442 = automated per-sector status line;
+ * 0800.820.002 = free TELVERDE line for complaints. Re-check the source page
+ * when touching these.
  */
 const DISPECERATE: Record<number, { zona: string | null; tel: string }[]> = {
   1: [{ zona: null, tel: '031.434.0458' }],
@@ -120,17 +129,70 @@ function statusSentence(sector: number, live: SectorLive, dataThrough: string): 
   return `La ${date}, în Sectorul ${sector} ${verb} ${fmtIntreruperi(n)} de apă caldă în curs${detail}.`;
 }
 
+/**
+ * Short status for the meta description. Same counts and cause wording as
+ * statusSentence, so the snippet never contradicts the page body; unclassified
+ * or planned episodes are never called "avarie".
+ */
+function metaStatus(live: SectorLive): string {
+  const n = live.ongoing.length;
+  if (n === 0) return 'nicio întrerupere anunțată în curs';
+  const avarii = live.ongoing.filter((o) => o.cause_class === 'avarie').length;
+  const programate = live.ongoing.filter((o) => o.cause_class === 'programat').length;
+  if (n === 1) {
+    if (avarii === 1) return 'o avarie în curs';
+    return programate === 1
+      ? 'o oprire programată în curs'
+      : 'o întrerupere în curs, cauză neprecizată în anunț';
+  }
+  if (avarii === n) return `${fmtIntreruperi(n)} în curs, toate din avarii`;
+  if (avarii === 0) {
+    return programate === n
+      ? `${fmtIntreruperi(n)} în curs, toate opriri programate`
+      : `${fmtIntreruperi(n)} în curs, niciuna anunțată ca avarie`;
+  }
+  return `${fmtIntreruperi(n)} în curs, dintre care ${avarii} din avarii`;
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
+  const lcy = lastCompleteYear();
+  // Lead with the searcher's own wording ("avarii apă caldă [sector N]") and answer
+  // it with the dated status from the last nightly build (data_through), so the
+  // snippet never implies real-time data. "Avarii de apă caldă" is only a topic
+  // label; the status after it keeps metaStatus' cause wording, so planned or
+  // unclassified outages are never called "avarie". Termoenergetica is named only
+  // as the source, and only its announced restoration term is mentioned — and
+  // only when something is actually ongoing. The archive start year comes from
+  // the data bundle (first bar in "Evoluție pe ani"), never hardcoded.
+  // Candidates fall back to fit 160 chars.
   const meta = getMeta();
+  const live = getSectorLive(Number(id), lcy);
+  const date = fmtDateRo(meta.data_through);
   const firstYear = meta.years[0];
+  const lead = `Avarii de apă caldă în Sectorul ${id}: la ${date}, ${metaStatus(live)}`;
+  const candidates =
+    live.ongoing.length > 0
+      ? [
+          `${lead}, cu termenul de restabilire anunțat de Termoenergetica.`,
+          `${lead}. Sursa: anunțurile Termoenergetica.`,
+          `${lead}.`,
+        ]
+      : [
+          `${lead}. Istoric din ${firstYear}, din anunțurile Termoenergetica.`,
+          `${lead}. Istoric pe ani, din anunțurile Termoenergetica.`,
+          `${lead}. Sursa: anunțurile Termoenergetica.`,
+          `${lead}.`,
+        ];
+  const description =
+    candidates.find((c) => [...c].length <= 160) ?? candidates[candidates.length - 1];
   return {
-    title: `Apă caldă Sectorul ${id} — avarii în curs acum`,
-    description: `Avariile de apă caldă în curs acum în Sectorul ${id}, cu punctele termice și străzile afectate, numărul de dispecerat non-stop și istoricul complet din ${firstYear}.`,
+    title: `Apă caldă Sectorul ${id}: avarii azi și istoric`,
+    description,
     alternates: { canonical: `/sector/${id}` },
   };
 }
@@ -161,9 +223,13 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
     };
   });
 
-  const worstPts = getPtRanking(lcy)
-    .filter((r) => r.sector === sector)
-    .slice(0, 20);
+  const sectorPts = getPtRanking(lcy).filter((r) => r.sector === sector);
+  const worstPts = sectorPts.slice(0, 20);
+  // SectorRankingRow has no deficienta field, so roll it up from the same PT
+  // universe the table below already renders.
+  const sectorHeadlineDays = sectorPts.reduce((a, r) => a + r.days, 0);
+  const sectorDeficientaDays = sectorPts.reduce((a, r) => a + r.days_deficienta, 0);
+  const ptsWorseDeficienta = sectorPts.filter((r) => r.days_deficienta > r.days).length;
 
   const topStreets = getStraziRanking(lcy)
     .filter((r) => r.sectors.includes(sector))
@@ -190,6 +256,17 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
         `avarii și opriri programate, e mai sus pe această pagină. Datele se actualizează o dată ` +
         `pe noapte; pentru anunțurile din ultimele ore, verifică cmteb.ro sau sună la linia ` +
         `automată 031.9442.`,
+    },
+    {
+      question: 'Ce înseamnă „deficiență" și de ce nu intră în total?',
+      answer:
+        `Termoenergetica anunță separat opririle de apă caldă și deficiențele — presiune sau ` +
+        `temperatură scăzută, adică apă călduță sau care abia curge. Indicatorul principal al ` +
+        `site-ului numără doar zilele de oprire. În ${lcy}, punctele termice din Sectorul ${sector} ` +
+        `au adunat ${fmtZile(sectorHeadlineDays)} de oprire și, pe lângă ele, ` +
+        `${fmtZile(sectorDeficientaDays)} cu presiune sau temperatură scăzută, numărate separat. ` +
+        `La ${ptsWorseDeficienta} din cele ${fmtInt(sectorPts.length)} ${deFor(sectorPts.length)}puncte termice ale ` +
+        `sectorului clasate în ${lcy}, zilele cu deficiențe au fost mai multe decât zilele de oprire.`,
     },
     {
       question: `De ce nu am apă caldă în Sectorul ${sector}?`,
@@ -244,9 +321,16 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
   return (
     <main className="mx-auto max-w-4xl px-4 py-10">
       <Breadcrumbs items={crumbs} />
+      {/* H1 mirrors the title pattern from the Site Brief ("avarii azi și istoric").
+          "azi" is a topic label; the dated line below says how fresh the data is. */}
       <h1 className="mt-6 font-display text-3xl font-bold">
-        Apă caldă în Sectorul {sector}
+        Apă caldă în Sectorul {sector}: avarii azi și istoric
       </h1>
+      <p className="mt-2 text-sm text-ink-soft">
+        Ultima actualizare:{' '}
+        <time dateTime={meta.data_through}>{fmtDateRo(meta.data_through)}</time>, din anunțurile
+        publice Termoenergetica. Proiect independent, neafiliat cu Termoenergetica sau PMB.
+      </p>
 
       {/* Answer-first: current status + 30-day pulse + historical baseline. */}
       <p className="mt-4 max-w-2xl leading-relaxed">
@@ -259,7 +343,7 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
 
       <section className="mt-10">
         <h2 className="hairline-b pb-2 font-display text-xl font-bold">
-          Este oprită apa caldă acum în Sectorul {sector}?
+          Este oprită apa caldă azi în Sectorul {sector}?
         </h2>
         {live.ongoing.length > 0 ? (
           <>
@@ -422,7 +506,8 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
               <th scope="col" className="py-2 pr-3 font-normal">Punct termic</th>
               <th scope="col" className="py-2 pr-3 text-right font-normal">Zile fără apă caldă</th>
               <th scope="col" className="py-2 pr-3 text-right font-normal">din care avarii</th>
-              <th scope="col" className="py-2 text-right font-normal">din care programate</th>
+              <th scope="col" className="py-2 pr-3 text-right font-normal">din care programate</th>
+              <th scope="col" className="py-2 text-right font-normal">zile cu deficiențe</th>
             </tr>
           </thead>
           <tbody>
@@ -436,7 +521,8 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
                 </td>
                 <td className="py-2 pr-3 text-right">{fmtInt(r.days)}</td>
                 <td className="py-2 pr-3 text-right">{fmtInt(r.days_avarie)}</td>
-                <td className="py-2 text-right">{fmtInt(r.days_programat)}</td>
+                <td className="py-2 pr-3 text-right">{fmtInt(r.days_programat)}</td>
+                <td className="py-2 text-right">{fmtInt(r.days_deficienta)}</td>
               </tr>
             ))}
           </tbody>
@@ -510,6 +596,14 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
           Episoade înregistrate în sector în {lcy}: {fmtInt(row.episodes)}. Media zilelor din
           avarii pe punct termic: {fmtDec(row.mean_days_avarie)}; din lucrări programate:{' '}
           {fmtDec(row.mean_days_programat)}.
+        </p>
+        <p className="mt-3">
+          Zile cu presiune sau temperatură scăzută, cumulat pe punctele termice ale sectorului
+          clasate în {lcy}: {fmtInt(sectorDeficientaDays)}, față de {fmtZile(sectorHeadlineDays)}{' '}
+          de oprire. Se numără separat și nu intră în cifrele de mai sus.{' '}
+          <Link href="/metodologie#deficiente" className="underline">
+            Cum le numărăm.
+          </Link>
         </p>
         <p className="mt-3">
           Alte sectoare:{' '}
