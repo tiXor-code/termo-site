@@ -1,0 +1,101 @@
+{
+  "slug": "cati-km-are-reteaua-de-termoficare-bucuresti",
+  "title": "Câți km are rețeaua de termoficare din București",
+  "description": "Rețeaua de termoficare din București: 954,09 km de conducte primare și 2.963,3 km secundare, după datele CMTEB. Ce înseamnă pentru apa caldă.",
+  "updated": "2026-10-16",
+  "lead": "Potrivit datelor Termoenergetica (CMTEB) preluate de Wikipedia din pagina „Despre companie” a operatorului, accesată la 1 iunie 2024, compania are în exploatare 954,09 km de conducte în rețeaua termică primară și 2.963,3 km în rețeaua termică secundară. Tot acolo apar 1.027 de puncte termice, stații centralizatoare și module termice, plus 48 de centrale termice. Sunt cifrele operatorului, nu măsurători ale acestui site.",
+  "sections": [
+    {
+      "heading": "Rețea primară și rețea secundară: ce înseamnă cele două cifre",
+      "paragraphs": [
+        "Cele două numere nu descriu același lucru. Potrivit Wikipedia, apa caldă este produsă la centralele termoelectrice și transportată prin conducte primare până la punctele termice, de unde este distribuită consumatorilor. Rețeaua primară, de 954,09 km, este deci drumul de la centrale la punctele termice. Sursele citate nu definesc separat rețeaua secundară; din descrierea de mai sus deducem că cei 2.963,3 km sunt partea care duce apa de la punctele termice mai departe, spre blocuri.",
+        "Diferența apare și în anunțurile de avarie ale Termoenergetica. În pagina „Funcționare sistem termoficare” se văd cauze precum „remediere avarii rețea primară” sau „remediere avarie rețea secundară pe circuitul de apă caldă de consum”. Anunțul spune de obicei dacă problema e pe rețeaua primară sau pe cea secundară."
+      ],
+      "bullets": [
+        "Rețea termică primară: 954,09 km de conducte (date CMTEB, prin Wikipedia).",
+        "Rețea termică secundară: 2.963,3 km de conducte (aceeași sursă).",
+        "Puncte termice, stații centralizatoare și module termice: 1.027.",
+        "Centrale termice: 48."
+      ]
+    },
+    {
+      "heading": "De unde vine cifra și cât de recentă este",
+      "paragraphs": [
+        "Cifrele vin din articolul Wikipedia despre Termoenergetica, care citează pagina „Despre companie” de pe site-ul operatorului, accesată la 1 iunie 2024. Nu le-am măsurat noi și nu le putem actualiza. Dacă operatorul a modernizat sau a scos din uz conducte între timp, lungimea de azi poate fi alta. Pentru o cifră citabilă, menționează sursa și data accesării.",
+        "Rețeaua are o istorie administrativă scurtă sub numele actual. Compania Municipală Termoenergetica București a fost înființată în 2019 și a preluat atribuțiile fostei Regii Autonome de Distribuție a Energiei Termice (RADET). Potrivit Wikipedia, Curtea de Apel București a decis pe 11 noiembrie 2019 intrarea RADET în faliment, iar de la 1 decembrie 2019 Termoenergetica a preluat oficial activitatea. Municipiul București deține aproape toate acțiunile companiei.",
+        "Termoenergetica administrează rețeaua de transport și distribuție a agentului termic. Tot potrivit Wikipedia, cooperează cu Electrocentrale București, care alimentează rețeaua de termoficare."
+      ]
+    },
+    {
+      "heading": "Ce înseamnă rețeaua pentru apa caldă din blocul tău",
+      "paragraphs": [
+        "Kilometrii arată cât de mare e sistemul, dar nu cât de des rămâi fără apă caldă. Pentru asta, Fără Apă Caldă reconstruiește anunțurile publice Termoenergetica din decembrie 2021. Până acum au fost reconstruite 59.174 de episoade de întreruperi. În 2025, mediana a fost de 22 de zile fără apă caldă pe punct termic, iar 92% dintre punctele termice au fost afectate măcar o dată.",
+        "Tot în 2025, punctele termice din București au adunat 26.559 de zile de oprire (punct termic × zi). Separat, au mai fost 15.786 de zile cu presiune sau temperatură scăzută. Acestea sunt deficiențe, nu opriri, așa că nu le adunăm la zilele fără apă caldă.",
+        "Diferențele dintre sectoare sunt mari. Mediana zilelor fără apă caldă în 2025 a fost de 48 de zile în Sectorul 5, 32 în Sectorul 2, 29 în Sectorul 4, 25 în Sectorul 3, 17 în Sectorul 1 și 15 în Sectorul 6. Sunt valori indicative, pentru că includ și punctele termice fără nicio întrerupere."
+      ]
+    },
+    {
+      "heading": "1.027 la operator, 947 în datele noastre",
+      "paragraphs": [
+        "Poate ai observat două cifre diferite. Cifra de 1.027 din datele CMTEB adună trei categorii: puncte termice, stații centralizatoare și module termice. Universul de referință al acestui site are 947 de puncte termice și vine din harta oficială a rețelei. Pe el se calculează toate statisticile noastre. Cele două cifre nu numără același lucru, așa că nu le compara direct.",
+        "Termoenergetica raportează întreruperile pe punct termic, nu pe tronson de conductă. De aceea, datele noastre arată câte zile a stat un punct termic fără apă caldă, dar nu pe ce kilometru de rețea a apărut problema. Cauza o afli doar din textul anunțului."
+      ]
+    },
+    {
+      "heading": "Ce nu îți spun kilometrii",
+      "paragraphs": [
+        "Lungimea rețelei nu spune nimic despre starea conductelor sau despre temperatura apei. Potrivit Wikipedia, compania trebuie să asigure apa caldă la o temperatură între 55 și 60°C, indiferent de consumul de moment. În februarie 2025, ANPC a amendat Termoenergetica pentru nerespectarea condițiilor din contractul de furnizare, inclusiv temperatura apei calde între 55 și 60 de grade.",
+        "Tot potrivit Wikipedia, pierderile din rețeaua de transport și distribuție nu sunt plătite de locatari. Contoarele de energie termică de la blocuri înregistrează doar consumul efectiv. Dacă apa caldă nu respectă parametrii contractuali, contorul nu înregistrează consum."
+      ]
+    },
+    {
+      "heading": "Unde verifici situația de azi și istoricul",
+      "paragraphs": [
+        "Pentru situația din acest moment, sursa este pagina „Funcționare sistem termoficare” a Termoenergetica. Anunțurile sunt împărțite pe sectoare și arată zonele afectate, agentul termic afectat, cauza intervenției și data și ora estimării punerii în funcțiune. Operatorul are și aplicația gratuită TERMOALERT, pentru Android și iOS.",
+        "Fără Apă Caldă este un proiect independent, nu Termoenergetica, CMTEB sau Primăria. Datele se actualizează o dată pe noapte, așa că pot rămâne în urmă față de anunțul oficial. Termenul de revenire a apei calde este doar cel anunțat de operator, marcat ca atare."
+      ],
+      "bullets": [
+        "Acum: pagina de funcționare a Termoenergetica sau aplicația TERMOALERT.",
+        "Istoricul unei adrese: caută strada sau punctul termic pe pagina principală.",
+        "Pe hartă: zilele fără apă caldă ale fiecărui punct termic, pe ani.",
+        "Cum numărăm: metodologia, cu sursele și limitele datelor."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "title": "Wikipedia: Termoenergetica (date CMTEB despre rețea, din pagina „Despre companie”, accesată la 1 iunie 2024)",
+      "url": "https://ro.wikipedia.org/wiki/Termoenergetica"
+    },
+    {
+      "title": "Wikipedia: RADET",
+      "url": "https://ro.wikipedia.org/wiki/RADET"
+    },
+    {
+      "title": "Termoenergetica București: Funcționare sistem termoficare",
+      "url": "https://www.cmteb.ro/functionare_sistem_termoficare.php"
+    }
+  ],
+  "related": [
+    {
+      "label": "Metodologie: ce numărăm și ce nu",
+      "href": "/metodologie"
+    },
+    {
+      "label": "Harta punctelor termice",
+      "href": "/harta"
+    },
+    {
+      "label": "Clasamentul punctelor termice",
+      "href": "/clasament/puncte-termice"
+    },
+    {
+      "label": "Apă caldă în București: opriri, avarii și istoric",
+      "href": "/ghid/apa-calda"
+    },
+    {
+      "label": "Apă caldă Sectorul 3: avarii azi și istoric",
+      "href": "/sector/3"
+    }
+  ]
+}

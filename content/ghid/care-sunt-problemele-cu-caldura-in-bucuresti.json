@@ -1,0 +1,119 @@
+{
+  "slug": "care-sunt-problemele-cu-caldura-in-bucuresti",
+  "title": "Problemele cu căldura în București, pe scurt",
+  "description": "De ce rămân blocurile din București fără căldură și apă caldă: avarii, opriri programate, apă călduță și pierderile operatorului. Cu cifre și surse.",
+  "updated": "2026-10-16",
+  "lead": "Problemele cu căldura în București vin, în mare, din trei locuri: avarii în rețeaua de conducte, opriri programate pentru reparații și agent termic livrat sub parametri (apă călduță, presiune mică). Pe fundal, operatorul a avut pierderi financiare ani la rând, dar sursele citate nu le leagă direct de avarii. Termoficarea e operată de Termoenergetica București (CMTEB). Fără Apă Caldă nu măsoară încălzirea: datele noastre acoperă doar apa caldă, din anunțurile publice ale companiei. Ele arată totuși cât de des se anunță opriri: în 2025, mediana a fost de 22 de zile fără apă caldă pe punct termic.",
+  "sections": [
+    {
+      "heading": "Cum ajunge căldura la bloc și unde se rupe lanțul",
+      "paragraphs": [
+        "Potrivit Wikipedia, apa caldă este produsă la centralele termoelectrice și transportată prin conducte primare până la punctele termice, de unde este distribuită consumatorilor. Termoenergetica administrează rețeaua de transport și distribuție și cooperează cu Electrocentrale București pentru a o alimenta.",
+        "Rețeaua e mare. Tot Wikipedia, citând compania, dă 954,09 km de conducte în rețelele termice primare, 2.963,3 km în cele secundare, 1.027 de puncte termice, stații centralizatoare și module termice și 48 de centrale termice.",
+        "Aceeași cauză anunțată poate afecta mai multe puncte termice. La 10 octombrie 2026, pe pagina „Funcționare sistem termoficare” a Termoenergetica, aceeași cauză, „Remediere avarii retea primara, deblindare si intretinere conducta DN 600”, apărea în dreptul mai multor puncte termice din sectoarele 2 și 3. E o fotografie a paginii din acea zi, nu situația de acum."
+      ]
+    },
+    {
+      "heading": "Avariile: problema cea mai vizibilă",
+      "paragraphs": [
+        "Din decembrie 2021 am reconstruit 59.191 de episoade de întreruperi de apă caldă din anunțurile publice Termoenergetica. În 2025, punctele termice din București au adunat 26.559 de zile de oprire (punct termic × zi), iar 92% dintre punctele termice au fost afectate măcar o dată. În anii întregi dinainte, cifra a fost de 27.110 în 2022, 29.958 în 2023 și 27.477 în 2024.",
+        "Pe unele străzi, avariile fac aproape toată cifra. Câteva exemple din 2025 sunt mai jos. Atenție la citire: zilele unei străzi înseamnă zile în care cel puțin o adresă de pe stradă a fost afectată, nu că toată strada a stat fără apă caldă.",
+        "Aceste cifre sunt despre apa caldă. Nu spun câte zile a lipsit căldura în calorifere: încălzirea nu face parte din această versiune a datelor noastre. Printre sursele citate de Wikipedia se află articole de presă cu titluri ca „Sute de mii de bucureșteni, fără apă caldă” (decembrie 2024) și „1700 de blocuri din București fără căldură la un ger de -13 grade” (februarie 2025)."
+      ],
+      "bullets": [
+        "Șoseaua Pantelimon: 181 de zile cu întreruperi, din care 139 din avarii",
+        "Șoseaua Mihai Bravu: 167 de zile, din care 130 din avarii",
+        "Bulevardul Tineretului: 91 de zile, din care 76 din avarii"
+      ]
+    },
+    {
+      "heading": "Opririle programate: reparații care durează",
+      "paragraphs": [
+        "Nu orice oprire e o avarie. Clasificarea noastră vine din cauza raportată de Termoenergetica: avariile sunt defecțiuni neplanificate, iar lucrările programate sunt revizii și modernizări anunțate. În anii recenți, 3–6% din episoadele de oprire au o cauză care nu poate fi clasificată.",
+        "Lucrările programate pot ține mult. Punctul termic Modul Toporași, din Sectorul 5, a avut 179 de zile cu întreruperi în 2025: una din avarii și 176 din lucrări programate. A fost cel mai afectat punct termic al anului.",
+        "Opririle nu sunt împărțite egal pe an. În 2025, luna cu cele mai multe zile cumulate de întrerupere a fost august, cu 5.052, urmată de iunie, cu 3.579. Cea mai liniștită a fost februarie, cu 627."
+      ]
+    },
+    {
+      "heading": "Apa călduță și presiunea mică",
+      "paragraphs": [
+        "A treia problemă nu apare ca oprire. Termoenergetica anunță separat deficiențe: presiune sau temperatură scăzută. Apa curge, dar slab sau călduță. Le numărăm separat și nu le adunăm la zilele fără apă caldă.",
+        "Nu sunt o notă de subsol. În 2025 au fost 15.786 de zile cu presiune sau temperatură scăzută, pe lângă zilele de oprire. 86% dintre ele au căzut în zile în care apa nu era oprită, deci sunt zile în plus. Din cele 905 puncte termice clasate în 2025, 180 (19,9%) au avut mai multe zile cu deficiențe decât zile de oprire.",
+        "Potrivit Wikipedia, compania trebuie să asigure apa caldă la o temperatură între 55 și 60°C. Tot acolo scrie că, în februarie 2025, ANPC a amendat Termoenergetica pentru nerespectarea condițiilor contractului de furnizare, inclusiv menținerea acestei temperaturi și respectarea diagramei de reglaj pentru încălzire."
+      ]
+    },
+    {
+      "heading": "Banii: de la datoriile RADET la pierderile de azi",
+      "paragraphs": [
+        "Operatorul de dinainte, RADET, a intrat în faliment. Potrivit Wikipedia, regia a acumulat datorii de aproximativ 3,83 miliarde de lei către ELCEN, iar Curtea de Apel București a decis falimentul pe 11 noiembrie 2019. De la 1 decembrie 2019, activitatea a fost preluată de Termoenergetica.",
+        "Nici noua companie nu stă pe profit. Wikipedia listează pentru Termoenergetica un rezultat net negativ în fiecare an din 2020 până în 2023, cu o pierdere de 427.283.484 lei în 2022 și de 187.730.154 lei în 2023.",
+        "Sursele citate aici nu leagă direct aceste cifre de numărul avariilor, așa că nu o facem nici noi. Le punem alături pentru că sunt parte din tablou."
+      ]
+    },
+    {
+      "heading": "Nu toate zonele au aceleași probleme",
+      "paragraphs": [
+        "Diferențele dintre sectoare sunt mari. În 2025, mediana zilelor fără apă caldă pe punct termic a fost de 48 în Sectorul 5, 32 în Sectorul 2, 29 în Sectorul 4, 25 în Sectorul 3, 17 în Sectorul 1 și 15 în Sectorul 6.",
+        "Valorile pe sector sunt indicative: includ și punctele termice fără nicio întrerupere. Pentru un bloc anume, pagina punctului termic spune mai mult decât media sectorului."
+      ]
+    },
+    {
+      "heading": "Ce poți face concret",
+      "paragraphs": [
+        "Fără Apă Caldă este un proiect independent, fără legătură cu Termoenergetica, CMTEB sau Primăria. Datele se actualizează o dată pe noapte, deci nu arată situația din acest moment. Pentru ce se întâmplă acum, sursa rămâne Termoenergetica, iar termenele de pe pagina ei sunt estimări ale companiei, nu garanții."
+      ],
+      "bullets": [
+        "Caută strada sau punctul termic pe pagina principală și uită-te la zilele de oprire pe ani, împărțite în avarii și lucrări programate.",
+        "Uită-te separat la zilele cu presiune sau temperatură scăzută: nu intră în cifra principală.",
+        "Pentru anunțurile curente, verifică pagina „Funcționare sistem termoficare” a Termoenergetica sau aplicația TERMOALERT.",
+        "Pentru sesizări și reclamații, Termoenergetica indică numărul 0800.820.002 (Telverde, apel gratuit).",
+        "La 031.9442 sunt mesaje preînregistrate pentru fiecare sector, tarif normal, program non-stop.",
+        "Fiecare secție de distribuție are dispecerat non-stop; numerele sunt pe pagina de contact a companiei și în ghidul nostru de contact."
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "title": "Wikipedia: Termoenergetica",
+      "url": "https://ro.wikipedia.org/wiki/Termoenergetica"
+    },
+    {
+      "title": "Wikipedia: RADET",
+      "url": "https://ro.wikipedia.org/wiki/RADET"
+    },
+    {
+      "title": "Termoenergetica București: Funcționare sistem termoficare",
+      "url": "https://www.cmteb.ro/functionare_sistem_termoficare.php"
+    },
+    {
+      "title": "Termoenergetica București: Date de contact",
+      "url": "https://www.cmteb.ro/contact.php"
+    }
+  ],
+  "related": [
+    {
+      "label": "Când se dă drumul la căldură în București",
+      "href": "/ghid/cand-se-da-drumul-la-caldura-bucuresti"
+    },
+    {
+      "label": "Contact avarii Termoenergetica: numere pe sectoare",
+      "href": "/ghid/care-sunt-informatiile-de-contact-pentru-avarii-la-termoenergetica"
+    },
+    {
+      "label": "Clasamente pe străzi, puncte termice și sectoare",
+      "href": "/clasament"
+    },
+    {
+      "label": "Harta punctelor termice",
+      "href": "/harta"
+    },
+    {
+      "label": "Metodologie: ce numărăm și ce nu",
+      "href": "/metodologie"
+    },
+    {
+      "label": "Caută strada ta: istoricul întreruperilor",
+      "href": "/"
+    }
+  ]
+}
