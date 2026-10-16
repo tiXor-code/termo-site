@@ -91,6 +91,32 @@ function statusSentence(sector: number, live: SectorLive, dataThrough: string): 
 }
 
 /**
+ * Direct answer to "când se dă drumul la apa caldă": only the restoration term
+ * Termoenergetica announced (remediere_last), marked as an operator estimate —
+ * never a forecast of our own, never a promise of the hour.
+ */
+function restoreSentence(sector: number, live: SectorLive, dataThrough: string): string {
+  const date = fmtDateRo(dataThrough);
+  if (live.ongoing.length === 0) {
+    return `La ${date} Termoenergetica nu anunța nicio întrerupere de apă caldă în curs în Sectorul ${sector}, deci nici vreun termen de restabilire.`;
+  }
+  const terms = live.groups
+    .map((g) => g.remediere_last)
+    .filter((t): t is string => t !== null)
+    .sort();
+  if (terms.length === 0) {
+    return `Doar Termoenergetica anunță când se dă drumul la apa caldă, iar la ${date} anunțurile pentru întreruperile în curs din Sectorul ${sector} nu precizau un termen de restabilire.`;
+  }
+  const first = terms[0];
+  const last = terms[terms.length - 1];
+  const when =
+    first === last
+      ? fmtDateTimeRo(last)
+      : `între ${fmtDateTimeRo(first)} și ${fmtDateTimeRo(last)}, în funcție de punctul termic`;
+  return `Doar Termoenergetica anunță când se dă drumul la apa caldă: pentru întreruperile în curs la ${date}, termenul de restabilire anunțat de Termoenergetica era ${when}. E o estimare a operatorului, nu o garanție.`;
+}
+
+/**
  * Short status for the meta description. Same counts and cause wording as
  * statusSentence, so the snippet never contradicts the page body; unclassified
  * or planned episodes are never called "avarie".
@@ -199,11 +225,22 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
   ];
 
   const status = statusSentence(sector, live, meta.data_through);
+  const restore = restoreSentence(sector, live, meta.data_through);
   const top3 = worstPts.slice(0, 3);
 
   // FAQ answers are plain strings so the FAQPage JSON-LD matches the visible
-  // text exactly; links live outside the answers.
+  // text exactly; links live outside the answers. The "când se dă drumul" answer
+  // comes first: it is the most searched question for sector pages (GSC).
   const faq: { question: string; answer: string }[] = [
+    {
+      question: `Când se dă drumul la apa caldă în Sectorul ${sector}?`,
+      answer:
+        `${restore} Termenul fiecărui anunț apare în tabelul de mai sus, la „Termen anunțat ` +
+        `de Termoenergetica”, și pe pagina fiecărui punct termic afectat.` +
+        (live.medianAvarieHours !== null
+          ? ` În ${lcy}, durata mediană a unui episod de avarie în Sectorul ${sector} a fost de aproximativ ${fmtDurata(live.medianAvarieHours)}.`
+          : ''),
+    },
     {
       question: 'Ce înseamnă „deficiență" și de ce nu intră în total?',
       answer:
@@ -223,13 +260,14 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
         `site ca să vezi punctul termic care o deservește și istoricul lui complet.`,
     },
     {
-      question: `Când revine apa caldă după o avarie în Sectorul ${sector}?`,
+      question: `Unde anunță Termoenergetica avariile din Sectorul ${sector}?`,
       answer:
-        `Termoenergetica publică pentru fiecare întrerupere un termen estimat de restabilire, ` +
-        `afișat pe pagina fiecărui punct termic afectat.` +
-        (live.medianAvarieHours !== null
-          ? ` În ${lcy}, durata mediană a unui episod de avarie în Sectorul ${sector} a fost de aproximativ ${fmtDurata(live.medianAvarieHours)}.`
-          : ''),
+        `Termoenergetica, compania municipală care a preluat în 2019 activitatea RADET, publică ` +
+        `avariile și opririle pe pagina de funcționare a sistemului de termoficare de pe cmteb.ro, ` +
+        `pe sectoare: punctele termice afectate, cauza și termenul estimat de restabilire. ` +
+        `Fără Apă Caldă arhivează aceste anunțuri o dată pe noapte și le arată pe această pagină, ` +
+        `grupate pe anunț. Proiectul este independent, nu este afiliat cu Termoenergetica și nu ` +
+        `știe mai mult decât ce a anunțat compania.`,
     },
     {
       question: `Cât de des rămâne Sectorul ${sector} fără apă caldă?`,
@@ -267,9 +305,12 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
         publice Termoenergetica. Proiect independent, neafiliat cu Termoenergetica sau PMB.
       </p>
 
-      {/* Answer-first: current status + 30-day pulse + historical baseline. */}
+      {/* Answer-first: current status + announced restore term (only when something
+          is ongoing) + 30-day pulse + historical baseline. */}
       <p className="mt-4 max-w-2xl leading-relaxed">
-        {status} În ultimele 30 de zile, {fmtInt(live.ptsHit30d)} din {fmtInt(live.ptsTotal)}{' '}
+        {status}
+        {live.ongoing.length > 0 ? ` ${restore}` : ''} În ultimele 30 de zile,{' '}
+        {fmtInt(live.ptsHit30d)} din {fmtInt(live.ptsTotal)}{' '}
         puncte termice din sector au avut cel puțin o întrerupere, iar în {lcy} punctul termic
         median din Sectorul {sector} a stat {fmtZile(row.median_days)} fără apă caldă. Mai
         jos: situația de acum, cele mai afectate zone și evoluția pe ani.
@@ -279,6 +320,25 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
         <h2 className="hairline-b pb-2 font-display text-xl font-bold">
           Este oprită apa caldă azi în Sectorul {sector}?
         </h2>
+        {/* Names the source in the searcher's wording ("termoenergetica avarii sector N")
+            without implying affiliation: we only archive and group the public announcements. */}
+        <p className="mt-3 max-w-2xl text-sm leading-relaxed">
+          Avariile și opririle de mai jos sunt cele anunțate public de Termoenergetica (compania
+          care a preluat în 2019 activitatea RADET) pentru punctele termice din Sectorul {sector}.
+          Fără Apă Caldă doar le arhivează și le grupează; anunțul original e pe{' '}
+          <a
+            href="https://www.cmteb.ro/functionare_sistem_termoficare.php"
+            className="underline"
+            rel="nofollow"
+          >
+            pagina de funcționare a termoficării
+          </a>
+          . Cine deține compania:{' '}
+          <Link href="/ghid/de-cine-apartine-termoenergetica" className="underline">
+            ghidul despre Termoenergetica
+          </Link>
+          .
+        </p>
         {live.ongoing.length > 0 ? (
           <>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed">
@@ -294,7 +354,7 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
                   <tr className="hairline-b text-left text-xs text-ink-soft">
                     <th scope="col" className="py-2 pr-3 font-normal">Cauză</th>
                     <th scope="col" className="py-2 pr-3 font-normal">Început</th>
-                    <th scope="col" className="py-2 pr-3 font-normal">Restabilire estimată</th>
+                    <th scope="col" className="py-2 pr-3 font-normal">Termen anunțat de Termoenergetica</th>
                     <th scope="col" className="py-2 font-normal">Puncte termice afectate</th>
                   </tr>
                 </thead>
