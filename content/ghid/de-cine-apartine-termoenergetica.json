@@ -2,7 +2,7 @@
   "slug": "de-cine-apartine-termoenergetica",
   "title": "De cine aparține Termoenergetica București",
   "description": "Cine deține Termoenergetica București (CMTEB), cum a preluat activitatea RADET și ce rol are ELCEN. Pe scurt, cu sursele citate.",
-  "updated": "2026-10-07",
+  "updated": "2026-10-16",
   "lead": "Termoenergetica București, cu numele complet Compania Municipală Termoenergetica București S.A. (CMTEB), aparține aproape în întregime Municipiului București. Potrivit Wikipedia, Municipiul București deține 99,999% din acțiuni, iar Comuna Chiajna și Orașul Popești-Leordeni au câte 131 de acțiuni. Compania a fost înființată în 2019 și a preluat activitatea fostei regii RADET. Fără Apă Caldă nu face parte din această structură: este un proiect independent care arhivează anunțurile publice ale companiei.",
   "sections": [
     {
@@ -73,6 +73,7 @@
     { "label": "Metodologie: ce numărăm și ce nu", "href": "/metodologie" },
     { "label": "Ghidul apei calde în București", "href": "/ghid/apa-calda" },
     { "label": "Harta punctelor termice", "href": "/harta" },
-    { "label": "Clasamente", "href": "/clasament" }
+    { "label": "Clasamente", "href": "/clasament" },
+    { "label": "Avarii Termoenergetica azi în Sectorul 2", "href": "/sector/2" }
   ]
 }
