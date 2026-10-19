@@ -17,18 +17,20 @@ import {
   lastCompleteYear,
 } from '@/lib/data';
 import { fmtDateRo, fmtDec, fmtInt, fmtZile } from '@/lib/format';
+import { getSectorLive, type SectorLive } from '@/lib/sector-live';
 
 export const dynamic = 'error';
 
 // Absolute: the layout's `%s | Fără Apă Caldă` template does not apply within
 // the same route segment, so the brand suffix is written out here (59 chars).
 // Leads with "Apă caldă București" for the city-wide queries ("apa calda",
-// "apa calda bucuresti"). "harta" queries are intentionally left to /harta
-// (Site Brief v4); / only links there.
+// "apa calda bucuresti"); the description leads with "azi, pe sectoare"
+// because the live-status intent is what the history angle was missing.
+// "harta" queries are intentionally left to /harta (Site Brief v4).
 export const metadata: Metadata = {
   title: { absolute: 'Apă caldă București: întreruperi pe străzi | Fără Apă Caldă' },
   description:
-    'Câte zile pe an stă strada ta fără apă caldă? Istoricul întreruperilor din București din 2021, din anunțurile publice Termoenergetica. Actualizat zilnic.',
+    'Avarii și opriri de apă caldă azi, pe sectoare, plus istoricul fiecărei străzi din București din 2021, din anunțurile Termoenergetica. Actualizat zilnic.',
   alternates: { canonical: '/' },
 };
 
@@ -41,6 +43,38 @@ const HERO_CHIPS: { slug: string; name: string }[] = [
 ];
 
 const SECTOR_IDS = [1, 2, 3, 4, 5, 6];
+
+/** "o întrerupere" / "3 întreruperi" / "21 de întreruperi" — same rule as /sector. */
+function fmtIntreruperi(n: number): string {
+  if (n === 1) return 'o întrerupere';
+  if (n >= 20) return `${fmtInt(n)} de întreruperi`;
+  return `${n} întreruperi`;
+}
+
+/** "o avarie" / "3 avarii" / "21 de avarii". */
+function fmtAvarii(n: number): string {
+  if (n === 1) return 'o avarie';
+  if (n >= 20) return `${fmtInt(n)} de avarii`;
+  return `${n} avarii`;
+}
+
+/** City-wide version of the /sector status sentence, same cause wording. */
+function cityStatusSentence(ongoing: number, avarii: number, dataThrough: string): string {
+  const date = fmtDateRo(dataThrough);
+  if (ongoing === 0) {
+    return `La ${date} nu era anunțată nicio întrerupere de apă caldă în curs în București.`;
+  }
+  const verb = ongoing === 1 ? 'era anunțată' : 'erau anunțate';
+  let detail = '';
+  if (avarii === ongoing) {
+    detail = ongoing === 1 ? ' (avarie)' : ', toate din avarii';
+  } else if (avarii === 0) {
+    detail = ', niciuna anunțată ca avarie';
+  } else {
+    detail = `, dintre care ${fmtAvarii(avarii)}`;
+  }
+  return `La ${date}, în București ${verb} ${fmtIntreruperi(ongoing)} de apă caldă în curs${detail}.`;
+}
 
 export default function HomePage() {
   const meta = getMeta();
@@ -75,6 +109,18 @@ export default function HomePage() {
   const totalEpisodes = getCitySummary().reduce((acc, s) => acc + s.episodes, 0);
   const sharePct = Math.round(summary.share_universe_hit_pct);
 
+  // City-wide "azi" view: the same nightly per-sector live data /sector/N
+  // renders, aggregated here for the answer-first block below the hero.
+  const liveBySector: { sector: number; live: SectorLive }[] = SECTOR_IDS.map((s) => ({
+    sector: s,
+    live: getSectorLive(s, lcy),
+  }));
+  const cityOngoing = liveBySector.reduce((a, r) => a + r.live.ongoing.length, 0);
+  const cityAvarii = liveBySector.reduce(
+    (a, r) => a + r.live.ongoing.filter((o) => o.cause_class === 'avarie').length,
+    0,
+  );
+
   return (
     <main className="mx-auto max-w-4xl px-4">
       {/* ===== search-first hero ===== */}
@@ -95,6 +141,63 @@ export default function HomePage() {
           ))}
         </div>
       </header>
+
+      {/* ===== Este oprită apa caldă azi: city-level dated status =====
+          Answer-first for the "azi / acum" half of "apa calda bucuresti":
+          the same per-sector live view /sector/N renders, aggregated. The
+          prose stays snippet-eligible (a dated status is the one number set
+          that should reach the SERP); the table joins the numeric blocks
+          under data-nosnippet. */}
+      <section className="section border-t border-hairline py-10">
+        <h2 className="font-display text-2xl font-bold">
+          Este oprită apa caldă în București azi?
+        </h2>
+        <p className="mt-3 max-w-2xl">
+          {cityStatusSentence(cityOngoing, cityAvarii, meta.data_through)} Situația pe
+          sectoare e în tabelul de mai jos; pagina fiecărui sector are lista anunțurilor în
+          curs, cu termenul de restabilire anunțat de Termoenergetica.
+        </p>
+        <table className="mt-4 w-full max-w-xl border-collapse text-sm tnum" data-nosnippet="">
+          <thead>
+            <tr className="hairline-b text-left text-xs text-ink-soft">
+              <th scope="col" className="py-1.5 pr-3 font-normal">Sector</th>
+              <th scope="col" className="py-1.5 pr-3 font-normal">Întreruperi în curs</th>
+              <th scope="col" className="py-1.5 font-normal">
+                Puncte termice afectate, ultimele 30 de zile
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {liveBySector.map(({ sector, live }) => {
+              const avarii = live.ongoing.filter((o) => o.cause_class === 'avarie').length;
+              return (
+                <tr key={sector} className="hairline-b">
+                  <td className="py-1.5 pr-3 font-sans">
+                    <Link href={`/sector/${sector}`} className="hover:underline">
+                      Sector {sector}
+                    </Link>
+                  </td>
+                  <td className="py-1.5 pr-3">
+                    {live.ongoing.length === 0
+                      ? '—'
+                      : avarii > 0
+                        ? `${fmtInt(live.ongoing.length)} (${fmtAvarii(avarii)})`
+                        : fmtInt(live.ongoing.length)}
+                  </td>
+                  <td className="py-1.5">
+                    {fmtInt(live.ptsHit30d)} din {fmtInt(live.ptsTotal)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <p className="mt-3 text-xs text-ink-soft">
+          Actualizat o dată pe noapte din anunțurile publice Termoenergetica; ultima
+          actualizare: {fmtDateRo(meta.data_through)}. O avarie apărută azi poate intra pe
+          listă abia la următoarea actualizare.
+        </p>
+      </section>
 
       {/* ===== Apă caldă în București: indexable intro =====
           Deliberately NOT data-nosnippet and deliberately number-free: the
