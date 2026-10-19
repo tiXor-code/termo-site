@@ -16,9 +16,9 @@ import { DEFICIENTA_GUARD_DAYS } from '@/lib/verdict';
 export const dynamic = 'error';
 
 export const metadata: Metadata = {
-  title: 'Metodologie: opriri și presiune scăzută la apa caldă',
+  title: 'Metodologie: opriri și presiune scăzută',
   description:
-    'Presiune sau temperatură scăzută la apa caldă în București: cum o separăm de opriri și câte zile au fost, din anunțurile publice Termoenergetica. Surse, limitări, verificări.',
+    'Cum separăm opririle de presiunea sau temperatura scăzută la apa caldă în București, din anunțurile publice Termoenergetica: surse, limitări, verificări.',
   alternates: { canonical: '/metodologie' },
 };
 
