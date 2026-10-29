@@ -212,3 +212,17 @@ body[data-app-poll="open"] [aria-label="Feedback despre site"] { display: none; 
 .legend i.def {
   background: linear-gradient(to bottom, var(--color-ok) 0 8px, var(--color-deficienta) 8px 12px);
 }
+
+/* Ministeru' Creativ credit: official two-line lockup (43px, the brand minimum) in the footer colour, our purple and a shine on hover/focus */
+.mc-credit{--mc-hi:#B37FF7;display:inline-flex;align-items:center;gap:15px;color:inherit;text-decoration:none;border-radius:4px;white-space:nowrap;line-height:1;vertical-align:middle}
+.mc-credit:focus-visible{outline:2px solid var(--mc-hi);outline-offset:4px}
+.mc-credit__eye{flex:none;width:37px;height:43px;background:currentColor;-webkit-mask:url(/brand/mc-eye.svg) center/contain no-repeat;mask:url(/brand/mc-eye.svg) center/contain no-repeat;transition:background-color .25s ease,filter .25s ease,transform .35s cubic-bezier(.3,1.6,.5,1)}
+.mc-credit__name{flex:none;height:27px;aspect-ratio:500.7/138;background:linear-gradient(100deg,currentColor 0 40%,var(--mc-hi) 50%,currentColor 60% 100%) 100% 0/280% 100% no-repeat;-webkit-mask:url(/brand/mc-name-ro.svg) center/contain no-repeat;mask:url(/brand/mc-name-ro.svg) center/contain no-repeat;animation:mc-credit-idle 9s ease-in-out 2s infinite}
+.mc-credit__name--en{aspect-ratio:5638/1866;-webkit-mask-image:url(/brand/mc-name-en.svg);mask-image:url(/brand/mc-name-en.svg)}
+.mc-credit:hover .mc-credit__eye,.mc-credit:focus-visible .mc-credit__eye{background-color:var(--mc-hi);filter:drop-shadow(0 0 5px color-mix(in srgb,var(--mc-hi) 70%,transparent));transform:translateY(-2px) rotate(-6deg)}
+.mc-credit:hover .mc-credit__name,.mc-credit:focus-visible .mc-credit__name{animation:mc-credit-sweep .9s ease-out both}
+.mc-credit--calm .mc-credit__name{animation:none}
+@keyframes mc-credit-idle{0%,82%{background-position:100% 0}100%{background-position:0 0}}
+@keyframes mc-credit-sweep{from{background-position:100% 0}to{background-position:0 0}}
+@media (prefers-reduced-motion:reduce){.mc-credit__name{animation:none!important}.mc-credit__eye{transition:background-color .25s ease}.mc-credit:hover .mc-credit__eye,.mc-credit:focus-visible .mc-credit__eye{transform:none}}
+.mc-credit{color:#4a433c;--mc-hi:#7B2C89}

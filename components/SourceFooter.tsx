@@ -27,17 +27,11 @@ export default function SourceFooter() {
             href="https://ministerucreativ.ro/"
             target="_blank"
             rel="noopener nofollow"
-            className="group inline-flex rounded"
+            aria-label="Ministeru' Creativ"
+            className="mc-credit"
           >
-            <img
-              src="/brand/ministeru-creativ.svg"
-              width={134}
-              height={16}
-              alt="Ministeru' Creativ"
-              loading="lazy"
-              decoding="async"
-              className="block h-4 w-auto opacity-80 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
-            />
+            <span className="mc-credit__eye" aria-hidden="true" />
+            <span className="mc-credit__name" aria-hidden="true" />
           </a>
         </p>
       </div>
