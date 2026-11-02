@@ -550,6 +550,10 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
               {i < arr.length - 1 ? ' · ' : ''}
             </span>
           ))}
+          {' · '}
+          <Link href="/avarii" className="underline">
+            Toate sectoarele: avariile de azi
+          </Link>
         </p>
       </section>
 

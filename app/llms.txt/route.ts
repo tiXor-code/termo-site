@@ -35,6 +35,7 @@ export async function GET() {
     "## Pagini principale",
     "",
     `- [Clasamente](${siteUrl(`/clasament/puncte-termice/${lcy}`)}): puncte termice, străzi și sectoare, pe ani`,
+    `- [Avarii azi](${siteUrl("/avarii")}): întreruperile în curs anunțate de Termoenergetica, pe sectoare, actualizate în fiecare noapte`,
     `- [Acasă + căutare](${siteUrl("/")}): caută orice stradă sau punct termic`,
     `- [Hartă](${siteUrl("/harta")}): toate punctele termice, colorate după zilele cu întreruperi`,
     `- [Metodologie](${siteUrl("/metodologie")}): surse, reguli de numărare, limitări, verificări încrucișate (Wayback, PMB, ANRE)`,
