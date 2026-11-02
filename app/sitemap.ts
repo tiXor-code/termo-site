@@ -37,6 +37,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }
   }
   for (let s = 1; s <= 6; s++) add(`/sector/${s}`, dataThrough);
+  add('/avarii', dataThrough);
   add('/harta', dataThrough);
   add('/metodologie', dataThrough);
   // Guides: listed only once one exists (the empty index is noindex); lastmod is the guide's own date.

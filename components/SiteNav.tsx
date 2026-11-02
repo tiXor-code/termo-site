@@ -4,6 +4,7 @@ import { clientAsset, lastCompleteYear } from '@/lib/data';
 
 const LINKS: { name: string; href: string }[] = [
   { name: 'Acasă', href: '/' },
+  { name: 'Avarii azi', href: '/avarii' },
   { name: 'Clasamente', href: '/clasament' },
   { name: 'Hartă', href: '/harta' },
   { name: 'Metodologie', href: '/metodologie' },
