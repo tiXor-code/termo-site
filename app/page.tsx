@@ -17,6 +17,8 @@ import {
   lastCompleteYear,
 } from '@/lib/data';
 import { fmtDateRo, fmtDec, fmtInt, fmtZile } from '@/lib/format';
+import { getSectorLive } from '@/lib/sector-live';
+import { faqJsonLd, JsonLd } from '@/lib/seo';
 
 export const dynamic = 'error';
 
@@ -41,6 +43,46 @@ const HERO_CHIPS: { slug: string; name: string }[] = [
 ];
 
 const SECTOR_IDS = [1, 2, 3, 4, 5, 6];
+
+/** "o întrerupere" / "3 întreruperi" / "21 de întreruperi" (mirrors /sector/[id]). */
+function fmtIntreruperi(n: number): string {
+  if (n === 1) return 'o întrerupere';
+  if (n >= 20) return `${fmtInt(n)} de întreruperi`;
+  return `${n} întreruperi`;
+}
+
+/**
+ * Dated city status at data_through — same cause wording as /sector/[id] and
+ * /avarii, so planned or unclassified outages are never called "avarie".
+ */
+function cityStatusSentence(
+  counts: { ongoing: number; avarii: number; programate: number },
+  dataThrough: string,
+): string {
+  const date = fmtDateRo(dataThrough);
+  const n = counts.ongoing;
+  if (n === 0) {
+    return `La ${date} nu era anunțată nicio întrerupere de apă caldă în curs în București.`;
+  }
+  const verb = n === 1 ? 'era anunțată' : 'erau anunțate';
+  let detail = '';
+  if (n === 1) {
+    detail =
+      counts.avarii === 1
+        ? ' (avarie)'
+        : counts.programate === 1
+          ? ' (oprire programată)'
+          : ' (cauză neprecizată în anunț)';
+  } else if (counts.avarii === n) {
+    detail = ', toate din avarii';
+  } else if (counts.avarii === 0) {
+    detail =
+      counts.programate === n ? ', toate opriri programate' : ', niciuna anunțată ca avarie';
+  } else {
+    detail = `, dintre care ${counts.avarii} din avarii`;
+  }
+  return `La ${date}, în București ${verb} ${fmtIntreruperi(n)} de apă caldă în curs${detail}.`;
+}
 
 export default function HomePage() {
   const meta = getMeta();
@@ -75,6 +117,63 @@ export default function HomePage() {
   const totalEpisodes = getCitySummary().reduce((acc, s) => acc + s.episodes, 0);
   const sharePct = Math.round(summary.share_universe_hit_pct);
 
+  // City-wide ongoing counts at data_through, rolled up from the per-sector
+  // live views (same nightly bundle the rest of the page reads).
+  const cityOngoing = SECTOR_IDS.flatMap((id) => getSectorLive(id, lcy).ongoing);
+  const cityCounts = {
+    ongoing: cityOngoing.length,
+    avarii: cityOngoing.filter((o) => o.cause_class === 'avarie').length,
+    programate: cityOngoing.filter((o) => o.cause_class === 'programat').length,
+  };
+  const cityStatus = cityStatusSentence(cityCounts, meta.data_through);
+
+  // FAQ answers are plain strings so the FAQPage JSON-LD matches the visible
+  // text exactly; links live outside the answers (same rule as /sector/[id]).
+  const faq: { question: string; answer: string }[] = [
+    {
+      question: 'De ce nu am apă caldă în București?',
+      answer:
+        `${cityStatus} Apa caldă vine de la punctul termic care deservește blocul, așa că o ` +
+        `avarie locală îți poate opri apa chiar dacă strada vecină nu e afectată. Caută strada ` +
+        `ta pe acest site ca să vezi punctul termic care o deservește, întreruperile lui în curs ` +
+        `și istoricul lui complet.`,
+    },
+    {
+      question: 'Când se dă drumul la apa caldă în București?',
+      answer:
+        `Doar Termoenergetica anunță când revine apa caldă, separat pentru fiecare avarie sau ` +
+        `oprire programată. Fiecare anunț are un termen estimat de restabilire, pe care îl ` +
+        `arătăm ca atare — e o estimare a operatorului, nu o garanție. Termenele anunțate pentru ` +
+        `întreruperile în curs sunt pe pagina avariilor de azi și pe pagina fiecărui punct ` +
+        `termic afectat.`,
+    },
+    {
+      question: 'Câte zile pe an stă Bucureștiul fără apă caldă?',
+      answer:
+        `În ${lcy}, punctul termic median din București a avut ${fmtZile(summary.median_pt_days)} ` +
+        `cu apa caldă oprită, iar ${sharePct}% din punctele termice au fost afectate măcar o ` +
+        `dată. Presiunea sau temperatura scăzută se numără separat și nu intră în aceste cifre. ` +
+        `Diferențele dintre zone sunt mari — clasamentele pe străzi, puncte termice și sectoare ` +
+        `arată exact unde.`,
+    },
+    {
+      question: 'Cine furnizează apa caldă în București?',
+      answer:
+        `Compania Municipală Termoenergetica București, care a preluat în 2019 activitatea ` +
+        `RADET, operează rețeaua de termoficare și punctele termice și publică anunțurile de ` +
+        `avarii și opriri pe cmteb.ro. Fără Apă Caldă este un proiect independent care arhivează ` +
+        `aceste anunțuri în fiecare noapte, din decembrie 2021.`,
+    },
+    {
+      question: 'Unde văd avariile de azi din București?',
+      answer:
+        `Pe pagina avariilor de azi vezi toate întreruperile în curs anunțate de Termoenergetica, ` +
+        `grupate pe anunț, cu termenul de restabilire, plus situația pe fiecare sector. Pagina se ` +
+        `actualizează o dată pe noapte, așa că pentru situația din acest moment sursa rămâne ` +
+        `Termoenergetica.`,
+    },
+  ];
+
   return (
     <main className="mx-auto max-w-4xl px-4">
       {/* ===== search-first hero ===== */}
@@ -97,11 +196,21 @@ export default function HomePage() {
       </header>
 
       {/* ===== Apă caldă în București: indexable intro =====
-          Deliberately NOT data-nosnippet and deliberately number-free: the
-          numeric blocks below stay out of snippets, this prose is the text
-          Google and answer engines can quote for city-wide queries. */}
+          Deliberately NOT data-nosnippet: this prose is the text Google and
+          answer engines can quote for city-wide queries. The only number in it
+          is the dated ongoing count — self-contained and dated, so a snippet
+          built from it reads as the answer to "apă caldă București azi", never
+          as a stale stat fragment (those stay data-nosnippet below). */}
       <section className="section border-t border-hairline py-10">
         <h2 className="font-display text-2xl font-bold">Apă caldă în București: ce găsești aici</h2>
+        <p className="mt-3 max-w-2xl">
+          {cityStatus} Termenul de restabilire anunțat de Termoenergetica pentru fiecare
+          întrerupere e pe{' '}
+          <Link href="/avarii" className="underline">
+            pagina avariilor de azi
+          </Link>
+          .
+        </p>
         <p className="mt-3 max-w-2xl">
           Fără Apă Caldă arată câte zile pe an a stat fiecare stradă, punct termic și sector din
           București fără apă caldă. Istoricul e reconstruit din anunțurile publice Termoenergetica,
@@ -356,6 +465,35 @@ export default function HomePage() {
           </Link>
         </p>
       </section>
+
+      <section className="mt-12 border-t border-hairline pt-6">
+        <h2 className="font-display text-2xl font-bold">
+          Întrebări frecvente despre apa caldă în București
+        </h2>
+        <div className="mt-4 max-w-2xl space-y-6">
+          {faq.map((item) => (
+            <div key={item.question}>
+              <h3 className="font-display text-lg font-bold">{item.question}</h3>
+              <p className="mt-2 text-sm leading-relaxed">{item.answer}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-5 text-sm">
+          <Link href="/avarii" className="underline">
+            Avariile de azi, pe sectoare
+          </Link>{' '}
+          ·{' '}
+          <Link href="/ghid/apa-calda" className="underline">
+            Ghidul apei calde în București
+          </Link>{' '}
+          ·{' '}
+          <Link href="/metodologie" className="underline">
+            Metodologie: ce numărăm și ce nu
+          </Link>
+        </p>
+      </section>
+
+      <JsonLd data={faqJsonLd(faq)} />
     </main>
   );
 }
