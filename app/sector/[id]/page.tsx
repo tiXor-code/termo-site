@@ -49,7 +49,55 @@ function fmtPuncteTermice(n: number): string {
 /** Names shown inline per announcement before the rest folds into <details>. */
 const PTS_SHOWN = 6;
 
-/** Median avarie duration for prose: "sub o oră" / "9 ore" / "2,5 zile". */
+/** Affected-PTs cell shared by the ongoing and recent tables. */
+function PtListCell({ pts }: { pts: { slug: string; name: string; streets: string[] }[] }) {
+  if (pts.length === 1) {
+    return (
+      <>
+        <Link href={`/punct-termic/${pts[0].slug}`} className="hover:underline">
+          {pts[0].name}
+        </Link>
+        {pts[0].streets.length > 0 ? (
+          <span className="text-ink-soft"> ({pts[0].streets.join(', ')})</span>
+        ) : null}
+      </>
+    );
+  }
+  const shown = pts.slice(0, PTS_SHOWN);
+  const rest = pts.slice(PTS_SHOWN);
+  return (
+    <>
+      <span className="text-ink-soft">{fmtPuncteTermice(pts.length)}: </span>
+      {shown.map((p, i) => (
+        <span key={p.slug}>
+          <Link href={`/punct-termic/${p.slug}`} className="hover:underline">
+            {p.name}
+          </Link>
+          {i < shown.length - 1 || rest.length > 0 ? ', ' : ''}
+        </span>
+      ))}
+      {rest.length > 0 ? (
+        <details className="mt-1">
+          <summary className="cursor-pointer text-xs text-ink-soft">
+            și încă {fmtPuncteTermice(rest.length)} — vezi lista
+          </summary>
+          <p className="mt-1 leading-relaxed">
+            {rest.map((p, i) => (
+              <span key={p.slug}>
+                <Link href={`/punct-termic/${p.slug}`} className="hover:underline">
+                  {p.name}
+                </Link>
+                {i < rest.length - 1 ? ', ' : ''}
+              </span>
+            ))}
+          </p>
+        </details>
+      ) : null}
+    </>
+  );
+}
+
+/** Episode duration for prose and tables: "sub o oră" / "9 ore" / "2,5 zile". */
 function fmtDurata(hours: number): string {
   if (hours < 1) return 'sub o oră';
   if (hours < 48) {
@@ -113,6 +161,42 @@ function metaStatus(live: SectorLive): string {
       : `${fmtIntreruperi(n)} în curs, niciuna anunțată ca avarie`;
   }
   return `${fmtIntreruperi(n)} în curs, dintre care ${avarii} din avarii`;
+}
+
+/**
+ * First sentence of the recent-outages section and of its FAQ twin. Same
+ * cause wording as statusSentence, so the two never contradict each other.
+ */
+function recentSentence(sector: number, live: SectorLive, dataThrough: string): string {
+  const date = fmtDateRo(dataThrough);
+  const episodes = live.recent.reduce((n, g) => n + g.pts.length, 0);
+  if (episodes === 0) {
+    return `În cele 30 de zile dinainte de ${date} nu s-a încheiat nicio întrerupere de apă caldă în Sectorul ${sector}.`;
+  }
+  const avarii = live.recent
+    .filter((g) => g.cause_class === 'avarie')
+    .reduce((n, g) => n + g.pts.length, 0);
+  const programate = live.recent
+    .filter((g) => g.cause_class === 'programat')
+    .reduce((n, g) => n + g.pts.length, 0);
+  const ptsAffected = new Set(live.recent.flatMap((g) => g.pts.map((p) => p.slug))).size;
+  const verb = episodes === 1 ? 's-a încheiat' : 's-au încheiat';
+  let detail = '';
+  if (episodes === 1) {
+    detail =
+      avarii === 1
+        ? ' (avarie)'
+        : programate === 1
+          ? ' (oprire programată)'
+          : ' (cauză neprecizată în anunț)';
+  } else if (avarii === episodes) {
+    detail = ', toate din avarii';
+  } else if (avarii === 0) {
+    detail = programate === episodes ? ', toate opriri programate' : ', niciuna anunțată ca avarie';
+  } else {
+    detail = `, dintre care ${avarii} din avarii`;
+  }
+  return `În cele 30 de zile dinainte de ${date} ${verb} ${fmtIntreruperi(episodes)} de apă caldă în Sectorul ${sector}${detail}, la ${fmtPuncteTermice(ptsAffected)}.`;
 }
 
 export async function generateMetadata({
@@ -192,6 +276,8 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
   ];
 
   const status = statusSentence(sector, live, meta.data_through);
+  const recent = recentSentence(sector, live, meta.data_through);
+  const recentEpisodes = live.recent.reduce((n, g) => n + g.pts.length, 0);
   const top3 = worstPts.slice(0, 3);
 
   // FAQ answers are plain strings so the FAQPage JSON-LD matches the visible
@@ -214,6 +300,16 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
         `${status} Apa caldă vine de la punctul termic care deservește blocul, așa că o avarie ` +
         `locală îți poate opri apa chiar dacă restul sectorului nu e afectat. Caută strada ta pe ` +
         `site ca să vezi punctul termic care o deservește și istoricul lui complet.`,
+    },
+    {
+      question: `Ce avarii de apă caldă au fost recent în Sectorul ${sector}?`,
+      answer:
+        `${recent} ` +
+        (recentEpisodes > 0
+          ? `Lista completă, cu început, sfârșit, durată și punctele termice afectate, este în ` +
+            `tabelul „Întreruperi încheiate recent" de pe această pagină.`
+          : `Dacă blocul tău nu are apă caldă acum, verifică secțiunea „Este oprită apa caldă ` +
+            `acum" de pe această pagină sau caută strada ta ca să vezi punctul termic care o deservește.`),
     },
     {
       question: `Când revine apa caldă după o avarie în Sectorul ${sector}?`,
@@ -258,7 +354,8 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
         {status} În ultimele 30 de zile, {fmtInt(live.ptsHit30d)} din {fmtInt(live.ptsTotal)}{' '}
         puncte termice din sector au avut cel puțin o întrerupere, iar în {lcy} punctul termic
         median din Sectorul {sector} a stat {fmtZile(row.median_days)} fără apă caldă. Mai
-        jos: situația de acum, cele mai afectate zone și evoluția pe ani.
+        jos: situația de acum, întreruperile încheiate recent, cele mai afectate zone și
+        evoluția pe ani.
       </p>
 
       <section className="mt-10">
@@ -286,8 +383,6 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
                 </thead>
                 <tbody>
                   {live.groups.map((g) => {
-                    const shown = g.pts.slice(0, PTS_SHOWN);
-                    const rest = g.pts.slice(PTS_SHOWN);
                     return (
                       <tr key={`${g.cause_class}|${g.start}|${g.remediere_last ?? ''}`} className="hairline-b align-baseline">
                         <td
@@ -304,45 +399,7 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
                           {g.remediere_last !== null ? fmtDateTimeRo(g.remediere_last) : '—'}
                         </td>
                         <td className="min-w-[14rem] py-2 font-sans">
-                          {g.pts.length === 1 ? (
-                            <>
-                              <Link href={`/punct-termic/${g.pts[0].slug}`} className="hover:underline">
-                                {g.pts[0].name}
-                              </Link>
-                              {g.pts[0].streets.length > 0 ? (
-                                <span className="text-ink-soft"> ({g.pts[0].streets.join(', ')})</span>
-                              ) : null}
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-ink-soft">{fmtPuncteTermice(g.pts.length)}: </span>
-                              {shown.map((p, i) => (
-                                <span key={p.slug}>
-                                  <Link href={`/punct-termic/${p.slug}`} className="hover:underline">
-                                    {p.name}
-                                  </Link>
-                                  {i < shown.length - 1 || rest.length > 0 ? ', ' : ''}
-                                </span>
-                              ))}
-                              {rest.length > 0 ? (
-                                <details className="mt-1">
-                                  <summary className="cursor-pointer text-xs text-ink-soft">
-                                    și încă {fmtPuncteTermice(rest.length)} — vezi lista
-                                  </summary>
-                                  <p className="mt-1 leading-relaxed">
-                                    {rest.map((p, i) => (
-                                      <span key={p.slug}>
-                                        <Link href={`/punct-termic/${p.slug}`} className="hover:underline">
-                                          {p.name}
-                                        </Link>
-                                        {i < rest.length - 1 ? ', ' : ''}
-                                      </span>
-                                    ))}
-                                  </p>
-                                </details>
-                              ) : null}
-                            </>
-                          )}
+                          <PtListCell pts={g.pts} />
                         </td>
                       </tr>
                     );
@@ -369,6 +426,78 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
           Actualizat o dată pe noapte din anunțurile publice Termoenergetica. O avarie apărută
           azi poate intra pe listă abia la următoarea actualizare.
         </p>
+      </section>
+
+      <section className="mt-12">
+        <h2 className="hairline-b pb-2 font-display text-xl font-bold">
+          Întreruperi încheiate recent în Sectorul {sector}
+        </h2>
+        {live.recent.length > 0 ? (
+          <>
+            <p className="mt-3 max-w-2xl text-sm leading-relaxed">
+              {recent}
+              {live.recent.length < recentEpisodes
+                ? ` Grupate pe ${live.recent.length === 1 ? 'un singur anunț' : `${live.recent.length} anunțuri`} Termoenergetica; o oprire care afectează mai multe puncte termice deodată apare pe un singur rând.`
+                : ''}{' '}
+              Cele mai noi sunt primele.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="mt-3 w-full border-collapse text-sm tnum">
+                <thead>
+                  <tr className="hairline-b text-left text-xs text-ink-soft">
+                    <th scope="col" className="py-2 pr-3 font-normal">Cauză</th>
+                    <th scope="col" className="py-2 pr-3 font-normal">Început</th>
+                    <th scope="col" className="py-2 pr-3 font-normal">Sfârșit</th>
+                    <th scope="col" className="py-2 pr-3 font-normal">Durată</th>
+                    <th scope="col" className="py-2 font-normal">Puncte termice afectate</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {live.recent.map((g) => (
+                    <tr key={`${g.cause_class}|${g.start}|${g.end}`} className="hairline-b align-baseline">
+                      <td
+                        className={`py-2 pr-3 whitespace-nowrap ${g.cause_class === 'avarie' ? 'text-avarie' : g.cause_class === 'programat' ? 'text-programat' : 'text-ink-soft'}`}
+                      >
+                        {g.cause_class === 'avarie'
+                          ? 'avarie'
+                          : g.cause_class === 'programat'
+                            ? 'programat'
+                            : 'neclasificat'}
+                      </td>
+                      <td className="py-2 pr-3 whitespace-nowrap">
+                        {g.uncertain ? '≈ ' : ''}
+                        {fmtDateTimeRo(g.start)}
+                      </td>
+                      <td className="py-2 pr-3 whitespace-nowrap">
+                        {g.uncertain ? '≈ ' : ''}
+                        {fmtDateTimeRo(g.end)}
+                      </td>
+                      <td className="py-2 pr-3 whitespace-nowrap">
+                        {g.durationHours !== null ? fmtDurata(g.durationHours) : '—'}
+                      </td>
+                      <td className="min-w-[14rem] py-2 font-sans">
+                        <PtListCell pts={g.pts} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {live.recent.some((g) => g.uncertain) ? (
+              <p className="mt-2 text-xs text-ink-soft">
+                ≈ interval estimat — sursa a avut o pauză de colectare în timpul episodului.
+              </p>
+            ) : null}
+          </>
+        ) : (
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed">
+            {recent} Dacă blocul tău nu are apă caldă acum, verifică secțiunea de mai sus sau{' '}
+            <Link href="/cauta" className="underline">
+              caută strada ta
+            </Link>{' '}
+            ca să vezi punctul termic care o deservește și istoricul lui complet.
+          </p>
+        )}
       </section>
 
       <StatHero

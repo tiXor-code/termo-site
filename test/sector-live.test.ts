@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { getSectorLive, groupOngoing, type OngoingRow } from '@/lib/sector-live';
+import {
+  getSectorLive,
+  groupOngoing,
+  groupRecentCompleted,
+  type OngoingRow,
+  type RecentRow,
+} from '@/lib/sector-live';
 
 // Fixture bundle: data_through 2025-06-10.
 // Sector 3 = pt-modul-alfa (ongoing programat since 2024-10-26, avarie
@@ -117,5 +123,101 @@ describe('lib/sector-live groupOngoing', () => {
 
   it('empty input yields no groups', () => {
     expect(groupOngoing([])).toEqual([]);
+  });
+});
+
+describe('lib/sector-live groupRecentCompleted', () => {
+  // 2025-05-11T00:00 naive-as-UTC, thirty days before the fixture data_through.
+  const cutoff = Date.UTC(2025, 4, 11);
+  const row = (over: Partial<RecentRow>): RecentRow => ({
+    slug: 'pt-x',
+    name: 'X',
+    streets: [],
+    cause_class: 'avarie',
+    start: '2025-05-20T08:00',
+    end: '2025-05-22T20:00',
+    uncertain: false,
+    ...over,
+  });
+
+  it('keeps episodes ended at or after the cutoff, drops older or unparsable ends', () => {
+    const groups = groupRecentCompleted(
+      [
+        row({ slug: 'pt-old', end: '2025-05-10T23:59', start: '2025-05-08T08:00' }),
+        row({ slug: 'pt-edge', start: '2025-05-09T08:00', end: '2025-05-11T00:00' }),
+        row({ slug: 'pt-new' }),
+        row({ slug: 'pt-bogus', end: 'nedeterminat' }),
+      ],
+      cutoff,
+    );
+    expect(groups.flatMap((g) => g.pts.map((p) => p.slug))).toEqual(['pt-new', 'pt-edge']);
+  });
+
+  it('orders groups newest end first', () => {
+    const groups = groupRecentCompleted(
+      [
+        row({ slug: 'pt-a', start: '2025-05-12T06:00', end: '2025-05-13T06:00' }),
+        row({ slug: 'pt-b', start: '2025-06-01T06:00', end: '2025-06-02T18:00' }),
+        row({ slug: 'pt-c', start: '2025-05-20T06:00', end: '2025-05-21T06:00' }),
+      ],
+      cutoff,
+    );
+    expect(groups.map((g) => g.end)).toEqual([
+      '2025-06-02T18:00',
+      '2025-05-21T06:00',
+      '2025-05-13T06:00',
+    ]);
+  });
+
+  it('collapses one announcement into one group and sorts PTs numeric-aware', () => {
+    const groups = groupRecentCompleted(
+      [
+        row({ slug: 'pt-b', name: '10 Catelu' }),
+        row({ slug: 'pt-c', name: '2 Catelu' }),
+        row({ slug: 'pt-d', name: '1 Catelu', cause_class: 'programat' }),
+        row({ slug: 'pt-e', name: '1 Catelu' }),
+      ],
+      cutoff,
+    );
+    // Same (cause, start, end) merges; a different cause stays its own group.
+    expect(groups).toHaveLength(2);
+    const avarie = groups.find((g) => g.cause_class === 'avarie');
+    expect(avarie?.pts.map((p) => p.name)).toEqual(['1 Catelu', '2 Catelu', '10 Catelu']);
+    expect(groups.find((g) => g.cause_class === 'programat')?.pts).toHaveLength(1);
+  });
+
+  it('computes the duration in hours and nulls it when a timestamp is unparsable', () => {
+    const groups = groupRecentCompleted(
+      [
+        row({}), // 2025-05-20T08:00 -> 2025-05-22T20:00 = 60h
+        row({ slug: 'pt-bad', start: 'nedeterminat', end: '2025-06-01T06:00' }),
+      ],
+      cutoff,
+    );
+    expect(groups.find((g) => g.start === '2025-05-20T08:00')?.durationHours).toBeCloseTo(60, 5);
+    expect(groups.find((g) => g.start === 'nedeterminat')?.durationHours).toBeNull();
+  });
+
+  it('marks the group uncertain when any member episode is', () => {
+    const groups = groupRecentCompleted(
+      [row({ slug: 'pt-a' }), row({ slug: 'pt-b', uncertain: true })],
+      cutoff,
+    );
+    expect(groups).toHaveLength(1);
+    expect(groups[0].uncertain).toBe(true);
+  });
+
+  it('empty input yields no groups', () => {
+    expect(groupRecentCompleted([], cutoff)).toEqual([]);
+  });
+});
+
+describe('lib/sector-live recent (fixture)', () => {
+  it('episodes ended before the 30-day window never reach recent, ongoing ones neither', () => {
+    // Sector 3 has an ongoing episode and an avarie ended 2024-07-22; sector 4
+    // has avarii ended 2024-01-17 and 2025-03-15 — all outside the window
+    // ending at data_through 2025-06-10.
+    expect(getSectorLive(3, 2024).recent).toEqual([]);
+    expect(getSectorLive(4, 2025).recent).toEqual([]);
   });
 });

@@ -31,11 +31,41 @@ export interface OngoingGroup {
   pts: { slug: string; name: string; streets: string[] }[];
 }
 
+/** A completed episode, kept for the recent-outages log. */
+export interface RecentRow {
+  slug: string;
+  name: string;
+  streets: string[];
+  cause_class: Episode['cause_class'];
+  start: string;
+  end: string;
+  uncertain: boolean;
+}
+
+/**
+ * One Termoenergetica announcement that is over: the completed episodes that
+ * share cause, start and actual end. Mirrors OngoingGroup so a city-wide
+ * shutdown that ended yesterday is one line, not ninety.
+ */
+export interface RecentGroup {
+  cause_class: Episode['cause_class'];
+  start: string;
+  end: string;
+  /** True when any member episode has an estimated (≈) interval. */
+  uncertain: boolean;
+  /** Hours between start and end; null when either timestamp is unparsable. */
+  durationHours: number | null;
+  /** Affected thermal points, sorted by name (numeric-aware, ro locale). */
+  pts: { slug: string; name: string; streets: string[] }[];
+}
+
 export interface SectorLive {
   /** Episodes still marked ongoing, avarie first, newest start first. */
   ongoing: OngoingRow[];
   /** `ongoing` collapsed per announcement, same order (avarie first, newest first). */
   groups: OngoingGroup[];
+  /** Completed episodes ended in the 30 days before data_through, grouped per announcement, newest end first. */
+  recent: RecentGroup[];
   /** Distinct PTs in the sector with any episode overlapping the last 30 days. */
   ptsHit30d: number;
   /** Total PTs in the sector (same universe the scan runs over). */
@@ -77,6 +107,47 @@ export function groupOngoing(rows: OngoingRow[]): OngoingGroup[] {
   return groups;
 }
 
+/**
+ * The recent-outages log: completed rows whose end falls at or after
+ * `cutoffMs`, newest end first, collapsed into one group per (cause, start,
+ * end) announcement. Rows with an unparsable end are dropped — without a
+ * comparable end there is no way to know they belong in the window.
+ */
+export function groupRecentCompleted(rows: RecentRow[], cutoffMs: number): RecentGroup[] {
+  const inWindow = rows.filter((r) => {
+    const endMs = parseLocalIso(r.end);
+    return endMs !== null && endMs >= cutoffMs;
+  });
+  inWindow.sort((a, b) => b.end.localeCompare(a.end) || b.start.localeCompare(a.start));
+
+  const byKey = new Map<string, RecentGroup>();
+  for (const r of inWindow) {
+    const key = `${r.cause_class}|${r.start}|${r.end}`;
+    let g = byKey.get(key);
+    if (g === undefined) {
+      const startMs = parseLocalIso(r.start);
+      const endMs = parseLocalIso(r.end);
+      g = {
+        cause_class: r.cause_class,
+        start: r.start,
+        end: r.end,
+        uncertain: false,
+        durationHours:
+          startMs !== null && endMs !== null && endMs > startMs
+            ? (endMs - startMs) / 3_600_000
+            : null,
+        pts: [],
+      };
+      byKey.set(key, g);
+    }
+    if (r.uncertain) g.uncertain = true;
+    g.pts.push({ slug: r.slug, name: r.name, streets: r.streets });
+  }
+  const groups = [...byKey.values()];
+  for (const g of groups) g.pts.sort((a, b) => nameCollator.compare(a.name, b.name));
+  return groups;
+}
+
 export function getSectorLive(sector: number, avarieYear: number): SectorLive {
   const meta = getMeta();
   const dataThroughMs = parseLocalIso(meta.data_through);
@@ -86,7 +157,9 @@ export function getSectorLive(sector: number, avarieYear: number): SectorLive {
   const cutoffMs = dataThroughMs - 30 * DAY_MS;
 
   const ongoing: OngoingRow[] = [];
+  const completed: RecentRow[] = [];
   const seenOngoing = new Set<string>();
+  const seenCompleted = new Set<string>();
   const hit30d = new Set<string>();
   const avarieDurations: number[] = [];
   let ptsTotal = 0;
@@ -111,6 +184,19 @@ export function getSectorLive(sector: number, avarieYear: number): SectorLive {
             cause_class: e.cause_class,
             start: e.start,
             remediere_last: e.remediere_last,
+          });
+        }
+
+        if (!e.ongoing && e.end !== null && !seenCompleted.has(key)) {
+          seenCompleted.add(key);
+          completed.push({
+            slug: pt.slug,
+            name: pt.name,
+            streets: pt.streets.slice(0, 2).map((s) => s.name),
+            cause_class: e.cause_class,
+            start: e.start,
+            end: e.end,
+            uncertain: e.uncertain,
           });
         }
 
@@ -153,6 +239,7 @@ export function getSectorLive(sector: number, avarieYear: number): SectorLive {
   return {
     ongoing,
     groups: groupOngoing(ongoing),
+    recent: groupRecentCompleted(completed, cutoffMs),
     ptsHit30d: hit30d.size,
     ptsTotal,
     medianAvarieHours,
