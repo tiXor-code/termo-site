@@ -110,7 +110,11 @@ export default function HomePage() {
         </p>
         <ul className="mt-4 max-w-2xl list-disc space-y-2 pl-5">
           <li>
-            <b>Avarii azi în sectorul tău:</b>{' '}
+            <b>Avarii azi:</b>{' '}
+            <Link href="/avarii" className="underline">
+              toate avariile anunțate în București
+            </Link>{' '}
+            sau pe sector:{' '}
             {SECTOR_IDS.map((id, i) => (
               <span key={id}>
                 {i > 0 ? ', ' : ''}
