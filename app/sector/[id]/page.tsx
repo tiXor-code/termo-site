@@ -8,6 +8,7 @@ import {
   getMeta,
   getPtRanking,
   getSectoareRanking,
+  getStraziRanking,
   getYearSummary,
   lastCompleteYear,
 } from '@/lib/data';
@@ -212,6 +213,12 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
 
   const sectorPts = getPtRanking(lcy).filter((r) => r.sector === sector);
   const worstPts = sectorPts.slice(0, 20);
+  // Street days are counted over the whole street, so a boundary street that
+  // crosses into another sector carries its full-street total here; such rows
+  // are marked inline and the footnote under the table says so.
+  const sectorStrazi = getStraziRanking(lcy).filter((r) => r.sectors.includes(sector));
+  const worstStrazi = sectorStrazi.slice(0, 10);
+  const hasCrossSectorStrazi = worstStrazi.some((r) => r.sectors.length > 1);
   // SectorRankingRow has no deficienta field, so roll it up from the same PT
   // universe the table below already renders.
   const sectorHeadlineDays = sectorPts.reduce((a, r) => a + r.days, 0);
@@ -227,6 +234,7 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
   const status = statusSentence(sector, live, meta.data_through);
   const restore = restoreSentence(sector, live, meta.data_through);
   const top3 = worstPts.slice(0, 3);
+  const top3Strazi = worstStrazi.slice(0, 3);
 
   // FAQ answers are plain strings so the FAQPage JSON-LD matches the visible
   // text exactly; links live outside the answers. The "când se dă drumul" answer
@@ -286,6 +294,19 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
               `au fost ${top3[0].name} (${fmtZile(top3[0].days)}), ${top3[1].name} ` +
               `(${fmtZile(top3[1].days)}) și ${top3[2].name} (${fmtZile(top3[2].days)}). ` +
               `Clasamentul complet al sectorului e în tabelul de pe această pagină.`,
+          },
+        ]
+      : []),
+    ...(top3Strazi.length === 3
+      ? [
+          {
+            question: `Pe ce străzi din Sectorul ${sector} s-a oprit apa caldă cel mai des?`,
+            answer:
+              `În ${lcy}, străzile din Sectorul ${sector} cu cele mai multe zile fără apă caldă au ` +
+              `fost ${top3Strazi[0].name} (${fmtZile(top3Strazi[0].days)}), ${top3Strazi[1].name} ` +
+              `(${fmtZile(top3Strazi[1].days)}) și ${top3Strazi[2].name} (${fmtZile(top3Strazi[2].days)}). ` +
+              `Zilele sunt numărate pe toată strada, iar o stradă poate trece prin mai multe sectoare. ` +
+              `Pagina fiecărei străzi arată punctele termice care o deservesc și istoricul complet.`,
           },
         ]
       : []),
@@ -513,6 +534,59 @@ export default async function SectorPage({ params }: { params: Promise<{ id: str
           </Link>
         </p>
       </section>
+
+      {worstStrazi.length > 0 ? (
+        <section className="mt-12">
+          <h2 className="hairline-b pb-2 font-display text-xl font-bold">
+            Cele mai afectate străzi din Sectorul {sector} — {yearLabel(lcy, meta)}
+          </h2>
+          <table className="mt-3 w-full border-collapse text-sm tnum">
+            <thead>
+              <tr className="hairline-b text-left text-xs text-ink-soft">
+                <th scope="col" className="py-2 pr-3 font-normal">Loc</th>
+                <th scope="col" className="py-2 pr-3 font-normal">Stradă</th>
+                <th scope="col" className="py-2 pr-3 text-right font-normal">Zile fără apă caldă</th>
+                <th scope="col" className="py-2 pr-3 text-right font-normal">din care avarii</th>
+                <th scope="col" className="py-2 text-right font-normal">din care programate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {worstStrazi.map((r, i) => (
+                <tr key={r.slug} className="hairline-b">
+                  <td className="py-2 pr-3 text-ink-soft">{i + 1}</td>
+                  <td className="py-2 pr-3 font-sans">
+                    <Link href={`/strada/${r.slug}`} className="hover:underline">
+                      {r.name}
+                    </Link>
+                    {r.sectors.length > 1 ? (
+                      <span className="text-ink-soft">
+                        {` (și ${r.sectors
+                          .filter((s) => s !== sector)
+                          .map((s) => `Sectorul ${s}`)
+                          .join(', ')})`}
+                      </span>
+                    ) : null}
+                  </td>
+                  <td className="py-2 pr-3 text-right">{fmtInt(r.days)}</td>
+                  <td className="py-2 pr-3 text-right">{fmtInt(r.days_avarie)}</td>
+                  <td className="py-2 text-right">{fmtInt(r.days_programat)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {hasCrossSectorStrazi ? (
+            <p className="mt-3 text-xs text-ink-soft">
+              O stradă care trece prin mai multe sectoare apare cu zilele numărate pe toată
+              strada, nu doar pe porțiunea din Sectorul {sector}.
+            </p>
+          ) : null}
+          <p className="mt-4 text-sm">
+            <Link href={`/clasament/strazi/${lcy}`} className="underline">
+              Clasamentul complet al străzilor — {lcy}
+            </Link>
+          </p>
+        </section>
+      ) : null}
 
       <section className="mt-12">
         <h2 className="hairline-b pb-2 font-display text-xl font-bold">Întrebări frecvente</h2>
