@@ -6,10 +6,13 @@ import RankingTable from '@/components/RankingTable';
 import {
   clientAsset,
   getMeta,
+  getPtAll,
   getPtRanking,
   getSectoareRanking,
+  getStradaAll,
   getStraziRanking,
   getYearSummary,
+  lastCompleteYear,
 } from '@/lib/data';
 import { deFor, fmtDateRo, fmtDec, fmtInt, yearLabel } from '@/lib/format';
 import {
@@ -87,6 +90,45 @@ export default function ClasamentPage({ unitate, an }: { unitate: Unitate; an: n
   const deficientaShare = allRows.length > 0 ? withDeficienta / allRows.length : 0;
   const unitNoun = unit === 'strada' ? 'străzi' : 'puncte termice';
 
+  // Complete directory of the pages the ranking above does not link: PTs with
+  // zero reconstructed interruption days, and streets below the server-rendered
+  // top 100 (the rest of the street ranking loads as a client asset, so those
+  // links are otherwise invisible to crawlers). Rendered only on the canonical
+  // last-complete-year page to keep the other year pages lean.
+  let directory:
+    | { heading: string; note: string; base: string; items: { slug: string; name: string }[] }
+    | undefined;
+  if (an === lastCompleteYear() && unitate !== 'sectoare') {
+    if (unitate === 'puncte-termice') {
+      const ranked = new Set(getPtRanking(an).map((r) => r.slug));
+      directory = {
+        heading: `Puncte termice fără întreruperi — ${anLabel}`,
+        note:
+          `Punctele termice care nu apar în clasament: fără nicio zi de oprire a apei calde ` +
+          `reconstruită din anunțurile Termoenergetica în ${anLabel}. Lista completă, pentru navigare:`,
+        base: '/punct-termic',
+        items: [...getPtAll().values()].filter((p) => !ranked.has(p.slug)),
+      };
+    } else {
+      const shown = new Set(getStraziRanking(an).slice(0, 100).map((r) => r.slug));
+      directory = {
+        heading: 'Toate celelalte străzi monitorizate',
+        note:
+          `Străzile de sub locul 100 din clasament și cele fără întreruperi înregistrate în ` +
+          `${anLabel} — lista completă, pentru navigare:`,
+        base: '/strada',
+        // Same rule as app/sitemap.ts: OSM-only/estimate streets (no outage
+        // years) are noindex — never link them from the hub.
+        items: [...getStradaAll().values()].filter(
+          (s) => !shown.has(s.slug) && Object.keys(s.years).length > 0,
+        ),
+      };
+    }
+    directory.items = directory.items
+      .map(({ slug, name }) => ({ slug, name }))
+      .sort((a, b) => a.name.localeCompare(b.name, 'ro'));
+  }
+
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
       <Breadcrumbs
@@ -131,6 +173,21 @@ export default function ClasamentPage({ unitate, an }: { unitate: Unitate; an: n
           enableCauzaFilter={unitate !== 'sectoare'}
         />
       </div>
+      {directory && directory.items.length > 0 && (
+        <section className="mt-10">
+          <h2 className="font-display text-xl font-bold">{directory.heading}</h2>
+          <p className="mt-2 max-w-2xl text-sm text-ink-soft">{directory.note}</p>
+          <ul className="mt-4 columns-2 gap-6 text-sm sm:columns-3 md:columns-4">
+            {directory.items.map((it) => (
+              <li key={it.slug} className="break-inside-avoid py-0.5">
+                <Link href={`${directory.base}/${it.slug}`} className="text-ink-soft hover:underline">
+                  {it.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="mt-8">
         <MethodologyFootnote anchor="deficiente">
           O „zi cu întrerupere" = o zi calendaristică atinsă de cel puțin un episod de oprire a apei
